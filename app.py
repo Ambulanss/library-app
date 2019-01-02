@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import QMessageBox
 
 class App(object):
 
-    field = None
 
     def setupUi(self, Form):
         Form.setObjectName("Form")
