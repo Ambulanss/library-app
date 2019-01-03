@@ -4,9 +4,16 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5 import QtSql
 from PyQt5.QtWidgets import QMessageBox
-
+import atexit
 
 class App(object):
+
+    def __init__(self, Form):
+        self.getDB()
+        print("gotDB")
+        print("setupUi")
+        self.setupUi(Form)
+        print("setupUi finished")
 
 
     def setupUi(self, Form):
@@ -38,9 +45,11 @@ class App(object):
         self.tabWidget.setObjectName("tabWidget")
         self.tab = QtWidgets.QWidget()
         self.tab.setObjectName("tab")
+
         self.tableView = QtWidgets.QTableView(self.tab)
         self.tableView.setGeometry(QtCore.QRect(10, 30, 761, 511))
         self.tableView.setObjectName("tableView")
+
         self.comboBox = QtWidgets.QComboBox(self.tab)
         self.comboBox.setGeometry(QtCore.QRect(10, 0, 141, 26))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
@@ -48,12 +57,9 @@ class App(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.comboBox.sizePolicy().hasHeightForWidth())
         self.comboBox.setSizePolicy(sizePolicy)
+
         self.comboBox.setObjectName("comboBox")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
+        self.comboBox.currentTextChanged.connect(lambda: self.putDataIntoTableView(self.comboBox.currentText()))
         self.lineEdit = QtWidgets.QLineEdit(self.tab)
         self.lineEdit.setGeometry(QtCore.QRect(232, 0, 531, 26))
         self.lineEdit.setObjectName("lineEdit")
@@ -66,41 +72,35 @@ class App(object):
         self.formLayoutWidget = QtWidgets.QWidget(self.tab_2)
         self.formLayoutWidget.setGeometry(QtCore.QRect(9, 9, 391, 481))
         self.formLayoutWidget.setObjectName("formLayoutWidget")
+
+        #formLayout_2 - formLayout for getting args to add or remove rows
         self.formLayout_2 = QtWidgets.QFormLayout(self.formLayoutWidget)
         self.formLayout_2.setContentsMargins(0, 0, 0, 0)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label_2 = QtWidgets.QLabel(self.formLayoutWidget)
+        self.formLayout_2.setGeometry(QtCore.QRect(19, 49, 381, 461))
+        self.label_2 = QtWidgets.QLabel(self.tab_2)
+        self.label_2.setGeometry(QtCore.QRect(412, 75, 43, 26))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
         self.label_2.setSizePolicy(sizePolicy)
         self.label_2.setObjectName("label_2")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_2)
-        self.comboBox_2 = QtWidgets.QComboBox(self.formLayoutWidget)
+
+        self.comboBox_2 = QtWidgets.QComboBox(self.tab_2)
+        self.comboBox_2.setGeometry(QtCore.QRect(475, 75, 200, 26))
         self.comboBox_2.setObjectName("comboBox_2")
-        self.comboBox_2.addItem("")
-        self.comboBox_2.addItem("")
-        self.comboBox_2.addItem("")
-        self.comboBox_2.addItem("")
-        self.comboBox_2.addItem("")
-        self.comboBox_2.addItem("")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.comboBox_2)
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.formLayoutWidget)
-        self.lineEdit_2.setObjectName("lineEdit_2")
-        self.formLayout_2.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.lineEdit_2)
-        self.label_3 = QtWidgets.QLabel(self.formLayoutWidget)
-        self.label_3.setObjectName("label_3")
-        self.formLayout_2.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_3)
+        self.comboBox_2.currentTextChanged.connect(lambda: self.showTableParameters(self.comboBox_2.currentText()))
+        for i in range(16):
+            self.comboBox.addItem("")
+            self.comboBox_2.addItem("")
+
         self.widget = QtWidgets.QWidget(self.tab_2)
-        self.widget.setGeometry(QtCore.QRect(410, 10, 351, 101))
+        self.widget.setGeometry(QtCore.QRect(410, 10, 351, 60))
         self.widget.setObjectName("widget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.widget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.pushButton_2 = QtWidgets.QPushButton(self.widget)
-        self.pushButton_2.setObjectName("pushButton_2")
-        self.verticalLayout.addWidget(self.pushButton_2)
         self.pushButton_3 = QtWidgets.QPushButton(self.widget)
         self.pushButton_3.setObjectName("pushButton_3")
         self.verticalLayout.addWidget(self.pushButton_3)
@@ -121,56 +121,74 @@ class App(object):
         icon = QtGui.QIcon("books.png")
         Form.setWindowIcon(icon)
 
-        self.comboBox.setItemText(0, _translate("Form", "Filie"))
-        self.comboBox.setItemText(1, _translate("Form", "Użytkownicy"))
-        self.comboBox.setItemText(2, _translate("Form", "Dzieła"))
-        self.comboBox.setItemText(3, _translate("Form", "Egzemplarze"))
-        self.comboBox.setItemText(4, _translate("Form", "Wypożyczenia"))
+        itemTexts = ["autor", "autorstwo_dziela", "dzial", "dzielo", "egzemplarz", "filia",\
+                     "filie_egzemplarze", "filie_uzytkownicy", "gatunek", "filie_uzytkownicy", "gatunek", \
+                     "przynaleznosc_do_filii", "przynaleznosc_do_gatunku", "rezerwacja", "spoznialscy",\
+                     "uzytkownicy_wypozyczenia", "uzytkownik", "wypozyczenie"]
+        for i in range(len(itemTexts)):
+            self.comboBox.setItemText(i, _translate("Form", itemTexts[i]))
+
         self.label.setText(_translate("Form", "Wyszukaj"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("Form", "Baza"))
         self.label_2.setText(_translate("Form", "Tabela:"))
-        self.comboBox_2.setItemText(0, _translate("Form", "Użytkownik"))
-        self.comboBox_2.setItemText(1, _translate("Form", "Wypożyczenie"))
-        self.comboBox_2.setItemText(2, _translate("Form", "Rezerwacja"))
-        self.comboBox_2.setItemText(3, _translate("Form", "Dzieło"))
-        self.comboBox_2.setItemText(4, _translate("Form", "Egzemplarz"))
-        self.comboBox_2.setItemText(5, _translate("Form", "Filia"))
-        self.label_3.setText(_translate("Form", "Wartości:"))
-        self.pushButton_2.setText(_translate("Form", "Zaktualizuj"))
+
+        for i in range(len(itemTexts)):
+            self.comboBox_2.setItemText(i, _translate("Form", itemTexts[i]))
+
         self.pushButton_3.setText(_translate("Form", "Usuń"))
         self.pushButton.setText(_translate("Form", "Dodaj"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Form", "Modyfikacja"))
 
-def getDB():
-    db = QtSql.QSqlDatabase.addDatabase('QMYSQL')
-    db.setHostName("localhost")
-    db.setDatabaseName("biblioteka")
-    db.setUserName("root")
-    db.setPassword("longlivefoss")
-
-    if not db.open():
-        QMessageBox.critical(None, "ERROR", "Cannot open database\n", QMessageBox.Ok)
-        return None
-
-    return db
+    def getDB(self):
+        self.conn = QtSql.QSqlDatabase.addDatabase('QMYSQL')
+        self.conn.setHostName("localhost")
+        self.conn.setDatabaseName("biblioteka")
+        self.conn.setUserName("root")
+        self.conn.setPassword("longlivefoss")
 
 
+        if not self.conn.open():
+            QMessageBox.critical(None, "ERROR", "Cannot open database\n", QMessageBox.Ok)
+            sys.exit(self.exec_())
+
+
+    def putDataIntoTableView(self, tableName):
+        query = QtSql.QSqlQueryModel()
+        query.setQuery("SELECT * FROM " + tableName, self.conn)
+        self.tableView.setModel(query)
+
+
+    def showTableParameters(self, name: str):
+        query = QtSql.QSqlQuery(self.conn)
+        query.exec_("SELECT * FROM " + name)
+        x = query.record().count()
+        names = [query.record().fieldName(i) for i in range(x)]
+
+        for i in reversed(range(self.formLayout_2.rowCount())):
+            self.formLayout_2.removeRow(i)
+        self.labels = []
+        self.linedits = []
+        for i in range(x):
+            self.labels.append(QtWidgets.QLabel(names[i]))
+            self.linedits.append(QtWidgets.QLineEdit())
+            self.formLayout_2.addRow(self.labels[i], self.linedits[i])
+
+
+    def closeConnection(self):
+        self.conn.close()
+        print("Is conn open? " + str(self.conn.isOpen()))
+        self.conn.removeDatabase("biblioteka")
+        print("Connection closed")
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
-    db = getDB()
-    if db == None:
-        print("ERROR: No database")
-        sys.exit()
-    else:
-        db.close()
-        print("Database is fine")
 
     Form = QtWidgets.QWidget()
-    ui = App()
-    ui.setupUi(Form)
 
+    Form.setWindowModality(QtCore.Qt.ApplicationModal)
+    ui = App(Form)
     Form.show()
+    atexit.register(ui.closeConnection)
     sys.exit(app.exec_())
 
 
