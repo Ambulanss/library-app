@@ -107,6 +107,7 @@ class App(object):
         self.pushButton = QtWidgets.QPushButton(self.widget)
         self.pushButton.setObjectName("pushButton")
         self.verticalLayout.addWidget(self.pushButton)
+        self.pushButton.released.connect(self.insertData)
         self.tabWidget.addTab(self.tab_2, "")
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
@@ -122,7 +123,7 @@ class App(object):
         Form.setWindowIcon(icon)
 
         itemTexts = ["autor", "autorstwo_dziela", "dzial", "dzielo", "egzemplarz", "filia",\
-                     "filie_egzemplarze", "filie_uzytkownicy", "gatunek", "filie_uzytkownicy", "gatunek", \
+                     "filie_egzemplarze", "filie_uzytkownicy", "gatunek",\
                      "przynaleznosc_do_filii", "przynaleznosc_do_gatunku", "rezerwacja", "spoznialscy",\
                      "uzytkownicy_wypozyczenia", "uzytkownik", "wypozyczenie"]
         for i in range(len(itemTexts)):
@@ -166,12 +167,45 @@ class App(object):
 
         for i in reversed(range(self.formLayout_2.rowCount())):
             self.formLayout_2.removeRow(i)
-        self.labels = []
-        self.linedits = []
+        self.addDelLabels = []
+        self.addDelLineEdits = []
         for i in range(x):
-            self.labels.append(QtWidgets.QLabel(names[i]))
-            self.linedits.append(QtWidgets.QLineEdit())
-            self.formLayout_2.addRow(self.labels[i], self.linedits[i])
+            self.addDelLabels.append(QtWidgets.QLabel(names[i]))
+            self.addDelLineEdits.append(QtWidgets.QLineEdit())
+            self.formLayout_2.addRow(self.addDelLabels[i], self.addDelLineEdits[i])
+
+    def __listToCommaStr(self, list, funny: bool):
+        output = ""
+        foo = int(funny)
+        for i in list[:-1]:
+            output += foo * "'" + i + foo * "'" + ", "
+        output += foo * "'" + list[-1] + foo * "'"
+        return output
+
+
+    def insertData(self):
+        fieldNames = []
+        args = []
+        for i in range(len(self.addDelLabels)):
+            if len(self.addDelLineEdits[i].text()) > 0:
+                fieldNames.append(self.addDelLabels[i].text())
+                args.append(self.addDelLineEdits[i].text())
+
+        tabFields = self.__listToCommaStr(fieldNames, False)
+        values = self.__listToCommaStr(args, True)
+        query = QtSql.QSqlQuery(self.conn)
+        tableName = self.comboBox_2.currentText()
+        try:
+            print(tableName)
+            print(tabFields)
+            print(values)
+            print("INSERT INTO " + tableName + "(" + tabFields + ")"
+                        "VALUES (" + values + ")")
+            query.exec_("INSERT INTO " + tableName + "(" + tabFields + ")"
+                        "VALUES (" + values + ")")
+        except QtSql.QSqlError:
+            print("SqlError occured :(")
+
 
 
     def closeConnection(self):
