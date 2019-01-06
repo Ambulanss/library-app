@@ -29,7 +29,6 @@ class App(object):
         Form.setMinimumSize(QtCore.QSize(800, 600))
         Form.setMaximumSize(QtCore.QSize(800, 600))
 
-
         self.gridLayoutWidget = QtWidgets.QWidget(Form)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(10, 10, 781, 581))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
@@ -98,16 +97,24 @@ class App(object):
         self.widget = QtWidgets.QWidget(self.tab_2)
         self.widget.setGeometry(QtCore.QRect(410, 10, 351, 60))
         self.widget.setObjectName("widget")
+
         self.verticalLayout = QtWidgets.QVBoxLayout(self.widget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.pushButton_3 = QtWidgets.QPushButton(self.widget)
-        self.pushButton_3.setObjectName("pushButton_3")
-        self.verticalLayout.addWidget(self.pushButton_3)
-        self.pushButton = QtWidgets.QPushButton(self.widget)
-        self.pushButton.setObjectName("pushButton")
-        self.verticalLayout.addWidget(self.pushButton)
-        self.pushButton.released.connect(self.insertData)
+
+        self.deleteButton = QtWidgets.QPushButton(self.widget)
+        self.deleteButton.setObjectName("pushButton_3")
+        self.verticalLayout.addWidget(self.deleteButton)
+        self.deleteButton.released.connect(self.deleteData)
+
+        self.searchButton = QtWidgets.QPushButton(self.widget)
+        self.searchButton.setObjectName("pushButton_2")
+        self.verticalLayout.addWidget(self.searchButton)
+
+        self.addButton = QtWidgets.QPushButton(self.widget)
+        self.addButton.setObjectName("pushButton")
+        self.verticalLayout.addWidget(self.addButton)
+        self.addButton.released.connect(self.insertData)
         self.tabWidget.addTab(self.tab_2, "")
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
@@ -136,8 +143,9 @@ class App(object):
         for i in range(len(itemTexts)):
             self.comboBox_2.setItemText(i, _translate("Form", itemTexts[i]))
 
-        self.pushButton_3.setText(_translate("Form", "Usuń"))
-        self.pushButton.setText(_translate("Form", "Dodaj"))
+        self.deleteButton.setText(_translate("Form", "Usuń"))
+        self.searchButton.setText(_translate("Form", "Szukaj"))
+        self.addButton.setText(_translate("Form", "Dodaj"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Form", "Modyfikacja"))
 
     def getDB(self):
@@ -152,12 +160,10 @@ class App(object):
             QMessageBox.critical(None, "ERROR", "Cannot open database\n", QMessageBox.Ok)
             sys.exit(self.exec_())
 
-
     def putDataIntoTableView(self, tableName):
         query = QtSql.QSqlQueryModel()
         query.setQuery("SELECT * FROM " + tableName, self.conn)
         self.tableView.setModel(query)
-
 
     def showTableParameters(self, name: str):
         query = QtSql.QSqlQuery(self.conn)
@@ -176,21 +182,24 @@ class App(object):
 
     def __listToCommaStr(self, list, funny: bool):
         output = ""
-        foo = int(funny)
+        if funny:
+            list = self.__wrapStringsWith(list, "'")
         for i in list[:-1]:
-            output += foo * "'" + i + foo * "'" + ", "
-        output += foo * "'" + list[-1] + foo * "'"
+            output += i + ", "
+        output += list[-1]
         return output
 
-
-    def insertData(self):
+    def __getFieldsFromUI(self):
         fieldNames = []
         args = []
         for i in range(len(self.addDelLabels)):
             if len(self.addDelLineEdits[i].text()) > 0:
                 fieldNames.append(self.addDelLabels[i].text())
                 args.append(self.addDelLineEdits[i].text())
+        return fieldNames, args
 
+    def insertData(self):
+        fieldNames, args = self.__getFieldsFromUI()
         tabFields = self.__listToCommaStr(fieldNames, False)
         values = self.__listToCommaStr(args, True)
         query = QtSql.QSqlQuery(self.conn)
@@ -200,12 +209,30 @@ class App(object):
             print(tabFields)
             print(values)
             print("INSERT INTO " + tableName + "(" + tabFields + ")"
-                        "VALUES (" + values + ")")
+                 "VALUES (" + values + ")")
             query.exec_("INSERT INTO " + tableName + "(" + tabFields + ")"
                         "VALUES (" + values + ")")
         except QtSql.QSqlError:
             print("SqlError occured :(")
 
+    def __wrapStringsWith(self, strList, char):
+        result = []
+        for i in strList:
+            result.append(char + i + char)
+        return result
+
+    def deleteData(self):
+        fieldNames, args = self.__getFieldsFromUI()
+        args = self.__wrapStringsWith(args, "'")
+        tableName = self.comboBox_2.currentText()
+        query = QtSql.QSqlQuery(self.conn)
+        conditions = []
+        for i in range(len(fieldNames)):
+            conditions.append(fieldNames[i]+"="+str(args[i]))
+        print(conditions)
+        sql = "DELETE FROM " + tableName + " WHERE " + self.__listToCommaStr(conditions, False)
+        print(sql)
+        query.exec_(sql)
 
 
     def closeConnection(self):
