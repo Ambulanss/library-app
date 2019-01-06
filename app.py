@@ -6,7 +6,13 @@ from PyQt5 import QtSql
 from PyQt5.QtWidgets import QMessageBox
 import atexit
 
+
 class App(object):
+
+    errorDict = {
+        -5: "Nie podałeś żadnych argumentów",
+        1364: "Podane argumenty nie wypełniają klucza podstawowego"
+    }
 
     def __init__(self, Form):
         self.getDB()
@@ -155,15 +161,22 @@ class App(object):
         self.conn.setUserName("root")
         self.conn.setPassword("longlivefoss")
 
-
         if not self.conn.open():
             QMessageBox.critical(None, "ERROR", "Cannot open database\n", QMessageBox.Ok)
             sys.exit(self.exec_())
 
     def putDataIntoTableView(self, tableName):
-        query = QtSql.QSqlQueryModel()
-        query.setQuery("SELECT * FROM " + tableName, self.conn)
+        filterProxyModel = QtCore.QSortFilterProxyModel()
+
+        query = QtSql.QSqlTableModel(db=self.conn)
+        #query.setQuery("SELECT * FROM " + tableName, self.conn)
+        query.setTable(tableName)
+        query.setEditStrategy(QtSql.QSqlTableModel.OnRowChange)
+
+        #filterProxyModel.setSourceModel(query)
+        #filterProxyModel.setFilterKeyColumn(0)
         self.tableView.setModel(query)
+        query.select()
 
     def showTableParameters(self, name: str):
         query = QtSql.QSqlQuery(self.conn)
@@ -178,6 +191,7 @@ class App(object):
         for i in range(x):
             self.addDelLabels.append(QtWidgets.QLabel(names[i]))
             self.addDelLineEdits.append(QtWidgets.QLineEdit())
+            #TODO self.addDelLineEdits[-1].setInputMask("X")
             self.formLayout_2.addRow(self.addDelLabels[i], self.addDelLineEdits[i])
 
     def __listToCommaStr(self, list, funny: bool):
@@ -200,20 +214,20 @@ class App(object):
 
     def insertData(self):
         fieldNames, args = self.__getFieldsFromUI()
-        tabFields = self.__listToCommaStr(fieldNames, False)
-        values = self.__listToCommaStr(args, True)
-        query = QtSql.QSqlQuery(self.conn)
-        tableName = self.comboBox_2.currentText()
-        try:
-            print(tableName)
-            print(tabFields)
-            print(values)
-            print("INSERT INTO " + tableName + "(" + tabFields + ")"
-                 "VALUES (" + values + ")")
+        if args:
+            tabFields = self.__listToCommaStr(fieldNames, False)
+            values = self.__listToCommaStr(args, True)
+            query = QtSql.QSqlQuery(self.conn)
+            tableName = self.comboBox_2.currentText()
+            print(len(args))
+
             query.exec_("INSERT INTO " + tableName + "(" + tabFields + ")"
                         "VALUES (" + values + ")")
-        except QtSql.QSqlError:
-            print("SqlError occured :(")
+            if len(query.lastError().text()) > 0:
+                self.showError(query.lastError().number())
+        else:
+            self.showError(-5)
+
 
     def __wrapStringsWith(self, strList, char):
         result = []
@@ -222,6 +236,7 @@ class App(object):
         return result
 
     def deleteData(self):
+
         fieldNames, args = self.__getFieldsFromUI()
         args = self.__wrapStringsWith(args, "'")
         tableName = self.comboBox_2.currentText()
@@ -234,12 +249,14 @@ class App(object):
         print(sql)
         query.exec_(sql)
 
-
     def closeConnection(self):
         self.conn.close()
         print("Is conn open? " + str(self.conn.isOpen()))
         self.conn.removeDatabase("biblioteka")
         print("Connection closed")
+
+    def showError(self, number):
+        QMessageBox.critical(self.widget, "Błąd nr " + str(number), self.errorDict[number])
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
