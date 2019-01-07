@@ -11,7 +11,17 @@ class App(object):
 
     errorDict = {
         -5: "Nie podałeś żadnych argumentów",
-        1364: "Podane argumenty nie wypełniają klucza podstawowego"
+        1062: "Wprowadzona wartość klucza głównego jest nieunikatowa",
+        1364: "Podane argumenty nie wypełniają klucza podstawowego",
+        1366: "Niewłaściwy typ argumentu",
+        4025: "Niespełnione ograniczenie"
+    }
+
+    fieldTypeDict = {
+        2: "Liczba naturalna",
+        6: "Liczba rzeczywista",
+        10: "Ciąg znaków",
+        14: "Data w formacie YYYY-MM-DD"
     }
 
     def __init__(self, Form):
@@ -68,6 +78,7 @@ class App(object):
         self.lineEdit = QtWidgets.QLineEdit(self.tab)
         self.lineEdit.setGeometry(QtCore.QRect(232, 0, 531, 26))
         self.lineEdit.setObjectName("lineEdit")
+        self.lineEdit.textChanged.connect(lambda: self.searchTableView(self.lineEdit.text()))
         self.label = QtWidgets.QLabel(self.tab)
         self.label.setGeometry(QtCore.QRect(166, 0, 61, 21))
         self.label.setObjectName("label")
@@ -113,9 +124,6 @@ class App(object):
         self.verticalLayout.addWidget(self.deleteButton)
         self.deleteButton.released.connect(self.deleteData)
 
-        self.searchButton = QtWidgets.QPushButton(self.widget)
-        self.searchButton.setObjectName("pushButton_2")
-        self.verticalLayout.addWidget(self.searchButton)
 
         self.addButton = QtWidgets.QPushButton(self.widget)
         self.addButton.setObjectName("pushButton")
@@ -149,8 +157,8 @@ class App(object):
         for i in range(len(itemTexts)):
             self.comboBox_2.setItemText(i, _translate("Form", itemTexts[i]))
 
+        self.comboBox_2.removeItem(self.comboBox_2.findText("spoznialscy"))
         self.deleteButton.setText(_translate("Form", "Usuń"))
-        self.searchButton.setText(_translate("Form", "Szukaj"))
         self.addButton.setText(_translate("Form", "Dodaj"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Form", "Modyfikacja"))
 
@@ -166,32 +174,45 @@ class App(object):
             sys.exit(self.exec_())
 
     def putDataIntoTableView(self, tableName):
-        filterProxyModel = QtCore.QSortFilterProxyModel()
-
         query = QtSql.QSqlTableModel(db=self.conn)
-        #query.setQuery("SELECT * FROM " + tableName, self.conn)
         query.setTable(tableName)
         query.setEditStrategy(QtSql.QSqlTableModel.OnRowChange)
-
-        #filterProxyModel.setSourceModel(query)
-        #filterProxyModel.setFilterKeyColumn(0)
         self.tableView.setModel(query)
         query.select()
+
+    def searchTableView(self, value):
+        model = self.tableView.model()
+        self.tableView.clearSelection()
+        for i in range(model.columnCount()):
+            start = model.index(0, i)
+            matches = model.match(start, QtCore.Qt.DisplayRole, value, -1,  QtCore.Qt.MatchContains)
+            for i in matches:
+                index = i
+                self.tableView.selectionModel().select(index, QtCore.QItemSelectionModel.Select)
 
     def showTableParameters(self, name: str):
         query = QtSql.QSqlQuery(self.conn)
         query.exec_("SELECT * FROM " + name)
         x = query.record().count()
         names = [query.record().fieldName(i) for i in range(x)]
-
+        types = [self.fieldTypeDict[query.record().field(i).type()] for i in range(x)]
         for i in reversed(range(self.formLayout_2.rowCount())):
             self.formLayout_2.removeRow(i)
         self.addDelLabels = []
         self.addDelLineEdits = []
+        #TODO getPrimaryKeys()
+        #keys = [query.record().field().is]
+
         for i in range(x):
             self.addDelLabels.append(QtWidgets.QLabel(names[i]))
-            self.addDelLineEdits.append(QtWidgets.QLineEdit())
+            self.addDelLineEdits.append(QtWidgets.QComboBox())
+            options_query = QtSql.QSqlQuery(db=self.conn, query="SELECT DISTINCT " + names[i] + " FROM " + name)
+            self.addDelLineEdits[-1].setEditable(True)
+            if types[i] == "Ciąg znaków":
+                while options_query.next():
+                    self.addDelLineEdits[-1].addItem(str(options_query.value(0)))
             #TODO self.addDelLineEdits[-1].setInputMask("X")
+            self.addDelLineEdits[-1].setToolTip(types[i])
             self.formLayout_2.addRow(self.addDelLabels[i], self.addDelLineEdits[i])
 
     def __listToCommaStr(self, list, funny: bool):
@@ -207,9 +228,9 @@ class App(object):
         fieldNames = []
         args = []
         for i in range(len(self.addDelLabels)):
-            if len(self.addDelLineEdits[i].text()) > 0:
+            if len(self.addDelLineEdits[i].currentText()) > 0:
                 fieldNames.append(self.addDelLabels[i].text())
-                args.append(self.addDelLineEdits[i].text())
+                args.append(self.addDelLineEdits[i].currentText())
         return fieldNames, args
 
     def insertData(self):
@@ -219,15 +240,15 @@ class App(object):
             values = self.__listToCommaStr(args, True)
             query = QtSql.QSqlQuery(self.conn)
             tableName = self.comboBox_2.currentText()
-            print(len(args))
 
             query.exec_("INSERT INTO " + tableName + "(" + tabFields + ")"
                         "VALUES (" + values + ")")
-            if len(query.lastError().text()) > 0:
+            if query.lastError().isValid():
+                s = query.lastError().text()
+                print("ERROR: ", s)
                 self.showError(query.lastError().number())
         else:
             self.showError(-5)
-
 
     def __wrapStringsWith(self, strList, char):
         result = []
@@ -238,16 +259,22 @@ class App(object):
     def deleteData(self):
 
         fieldNames, args = self.__getFieldsFromUI()
-        args = self.__wrapStringsWith(args, "'")
-        tableName = self.comboBox_2.currentText()
-        query = QtSql.QSqlQuery(self.conn)
-        conditions = []
-        for i in range(len(fieldNames)):
-            conditions.append(fieldNames[i]+"="+str(args[i]))
-        print(conditions)
-        sql = "DELETE FROM " + tableName + " WHERE " + self.__listToCommaStr(conditions, False)
-        print(sql)
-        query.exec_(sql)
+        if args:
+            args = self.__wrapStringsWith(args, "'")
+            tableName = self.comboBox_2.currentText()
+            query = QtSql.QSqlQuery(self.conn)
+            conditions = []
+            for i in range(len(fieldNames)):
+                conditions.append(fieldNames[i]+"="+str(args[i]))
+            print(conditions)
+            sql = "DELETE FROM " + tableName + " WHERE " + self.__listToCommaStr(conditions, False)
+            print(sql)
+            query.exec_(sql)
+            if query.lastError().isValid():
+                self.showError(query.lastError().number())
+                print(query.lastError().text())
+        else:
+            self.showError(-5)
 
     def closeConnection(self):
         self.conn.close()
@@ -256,7 +283,9 @@ class App(object):
         print("Connection closed")
 
     def showError(self, number):
-        QMessageBox.critical(self.widget, "Błąd nr " + str(number), self.errorDict[number])
+        QMessageBox.critical(self.widget, "Błąd nr " + str(number), self.errorDict.get(number, "Niezdefiniowany błąd"),\
+                             QMessageBox.Ok)
+
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
