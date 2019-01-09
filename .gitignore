@@ -1,1 +1,3 @@
 .idea*
+UI/*.py
+test*
