@@ -112,7 +112,7 @@
              <item row="3" column="0">
               <widget class="QLabel" name="label_9">
                <property name="text">
-                <string>Data urodzenia*</string>
+                <string>Data urodzenia</string>
                </property>
               </widget>
              </item>
@@ -771,6 +771,66 @@
                    <property name="toolTip">
                     <string>Wybierz tabelę, którą chcesz zmodyfikować</string>
                    </property>
+                   <item>
+                    <property name="text">
+                     <string>Autor</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Użytkownik</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Filia</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Gatunek</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Dzieło</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Dział</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Autorstwo_dzieła</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Egzemplarz</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Przynależność_do_filii</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Przynależność_do_gatunku</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Rezerwacja</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Wypożyczenie</string>
+                    </property>
+                   </item>
                   </widget>
                  </item>
                 </layout>
@@ -828,6 +888,66 @@
                  <property name="toolTip">
                   <string>Wybierz tabelę, którą chcesz obejrzeć</string>
                  </property>
+                 <item>
+                  <property name="text">
+                   <string>Autor</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Użytkownik</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Filia</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Gatunek</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Dzieło</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Dział</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Autorstwo_dzieła</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Egzemplarz</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Przynależność_do_filii</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Przynależność_do_gatunku</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Rezerwacja</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Wypożyczenie</string>
+                  </property>
+                 </item>
                 </widget>
                </item>
               </layout>
@@ -869,6 +989,66 @@
                  <property name="toolTip">
                   <string>Wybierz tabelę, którą chcesz przeszukać</string>
                  </property>
+                 <item>
+                  <property name="text">
+                   <string>Autor</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Użytkownik</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Filia</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Gatunek</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Dzieło</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Dział</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Autorstwo_dzieła</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Egzemplarz</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Przynależność_do_filii</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Przynależność_do_gatunku</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Rezerwacja</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Wypożyczenie</string>
+                  </property>
+                 </item>
                 </widget>
                </item>
                <item>

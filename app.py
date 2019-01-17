@@ -33,7 +33,7 @@ class App(Ui_Form):
     errorDict = {
         -1: "Coś się stało",
         -5:   "Nie podałeś żadnych argumentów",
-        1062: "Wprowadzona wartość klucza głównego jest nieunikatowa",
+        1062: "Niektóre z wprowadzonych wartości się powtarzają!",
         1064:   "",
         1364: "Nie wypełniłeś pól obowiązkowych",
         1366: "Niewłaściwy typ argumentu",
@@ -60,39 +60,40 @@ class App(Ui_Form):
         self.setupWidgets()
 
     def setupWidgets(self):
-        itemTexts = ["autor", "autorstwo_dziela", "dzial", "dzielo", "egzemplarz", "filia",
-                     "filie_egzemplarze", "filie_uzytkownicy", "gatunek",
-                     "przynaleznosc_do_filii", "przynaleznosc_do_gatunku", "rezerwacja", "spoznialscy",
-                     "uzytkownicy_wypozyczenia", "uzytkownik", "wypozyczenie"]
-        for i in range(16):
-            self.comboBox.addItem("")
-            self.comboBox_2.addItem("")
 
         _translate = QtCore.QCoreApplication.translate
-        for i in range(len(itemTexts)):
-            self.comboBox.setItemText(i, _translate("Form", itemTexts[i]))
 
-        for i in range(len(itemTexts)):
-            self.comboBox_2.setItemText(i, _translate("Form", itemTexts[i]))
-
-        self.comboBox_2.removeItem(self.comboBox_2.findText("spoznialscy"))
-        self.comboBox_2.removeItem(self.comboBox_2.findText("uzytkownicy_wypozyczenia"))
-        self.comboBox.currentTextChanged.connect(lambda: self.putDataIntoTableView(self.comboBox.currentText()))
+        self.comboBox.currentTextChanged.connect(lambda: self.putDataIntoTableView(self.comboBox.currentText(), self.tableView))
         self.putDataIntoTableView(self.comboBox.currentText())
         self.putDataIntoTableView(self.comboBox.currentText())
         self.comboBox_2.currentTextChanged.connect(lambda: self.showTableParameters(self.comboBox_2.currentText()))
         self.showTableParameters(self.comboBox_2.currentText())
-        self.deleteButton.released.connect(self.deleteData)
-        self.addButton.released.connect(self.insertData)
-        self.borrowButton.released.connect(self.borrow)
-        self.addUserButton.released.connect(self.addUser)
+        self.deleteButton.released.connect(self.__deleteData)
+        self.addButton.released.connect(self.__insertData)
+        self.borrowButton.released.connect(self.__borrow)
+        self.addUserButton.released.connect(self.__addUser)
+        self.searchButton.released.connect(self.searchTable)
 
         self.modelTab = QtSql.QSqlTableModel(db=self.conn)
         self.modelTab.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)
         self.modelTab.dataChanged.connect(self.editHandle)
         self.tableView.setModel(self.modelTab)
-        self.comboBox.currentTextChanged.connect(self.showing)
-        self.searchLabels, self.searchEdits = [], []
+        self.tableView.setSortingEnabled(True)
+        self.adminSearchLabels, self.adminSearchEdits = [], []
+        self.addSearchLabels, self.addSearchEdits = [], []
+        self.borrowSearchLabels, self.borrowSearchEdits = [], []
+        self.registerSearchLabels, self.registerSearchEdits = [], []
+        self.comboBox_3.currentTextChanged.connect(lambda: self.showing(self.comboBox_3, self.horizontalLayout,
+                                                                        self.adminSearchLabels, self.adminSearchEdits))
+        self.comboBox_7.currentTextChanged.connect(lambda: self.showing(self.comboBox_7, self.addSearchLabelsLayout,
+                                                                        self.addSearchLabels, self.addSearchEdits))
+        self.comboBox_8.currentTextChanged.connect(lambda: self.showing(self.comboBox_8, self.borrowSearchLabelsLayout,
+                                                                        self.borrowSearchLabels, self.borrowSearchEdits))
+        self.comboBox_9.currentTextChanged.connect(lambda: self.showing(self.comboBox_9, self.registerSearchLabelsLayout,
+                                                                        self.registerSearchLabels,
+                                                                        self.registerSearchEdits))
+        self.tabWidget.currentChanged.connect(lambda: self.putDataIntoTableView(self.comboBox.currentText()))
+        self.tabWidget.currentChanged.connect(lambda: self.showTableParameters(self.comboBox_2.currentText()))
 
 
     def getDB(self):
@@ -117,24 +118,47 @@ class App(Ui_Form):
         if self.modelTab.lastError().isValid():
             self.showError(self.modelTab.lastError())
 
-    def showing(self):
-        name = self.comboBox.currentText()
+    def searchTable(self):
+        tablename = self.comboBox.currentText()
+        argnames = []
+        args = []
+        print(len(self.adminSearchLabels))
+
+        for i in range(len(self.adminSearchLabels)):
+            if len(self.adminSearchEdits[i].text()) > 0:
+                args.append(self.adminSearchEdits[i].text())
+                argnames.append(self.adminSearchLabels[i].text())
+        if args:
+            args = self.textTr.wrapStringsWith(args, "'")
+            query = QtSql.QSqlQuery(self.conn)
+            parsed_args = [argnames[i] + "=" + args[i] for i in range(len(args))]
+            parsed_args = self.textTr.listToCommaStr(parsed_args, False)
+            print(parsed_args)
+
+            sql = "SELECT * FROM " + tablename + " WHERE " + parsed_args
+            projectModel = QtSql.QSqlQueryModel()
+            projectModel.setQuery(sql, self.conn)
+            print(sql)
+            query.exec_(sql)
+            self.tableView_2.setModel(projectModel)
+            self.tableView_2.show()
+
+    def showing(self, comboBox, horizontalLayout, searchLabels, searchEdits):
+        name = comboBox.currentText()
         query = QtSql.QSqlQuery(self.conn)
         query.exec_("SELECT * FROM " + name)
-        count = len(self.searchLabels)
         x = query.record().count()
-        for i in range(self.horizontalLayout.count()):
-            self.horizontalLayout.itemAt(i).widget().close()
+        for i in range(horizontalLayout.count()):
+            horizontalLayout.itemAt(i).widget().close()
         names = [query.record().fieldName(i) for i in range(x)]
-        types = [self.fieldTypeDict[query.record().field(i).type()] for i in range(x)]
-        self.searchLabels, self.searchEdits = [], []
+        types = [self.fieldTypeDict.get(query.record().field(i).type(), "") for i in range(x)]
+        searchLabels, searchEdits = [], []
 
         for i in range(x):
-            self.searchLabels.append(QtWidgets.QLabel(names[i]))
-            self.searchEdits.append(QtWidgets.QLineEdit())
-            self.horizontalLayout.addWidget(self.searchLabels[-1])
-            self.horizontalLayout.addWidget(self.searchEdits[-1])
-
+            searchLabels.append(QtWidgets.QLabel(names[i]))
+            searchEdits.append(QtWidgets.QLineEdit())
+            horizontalLayout.addWidget(searchLabels[-1])
+            horizontalLayout.addWidget(searchEdits[-1])
 
     def searchTableView(self, value):
         model = self.tableView.model()
@@ -156,8 +180,6 @@ class App(Ui_Form):
             self.formLayout.removeRow(i)
         self.addDelLabels = []
         self.addDelLineEdits = []
-        #TODO getPrimaryKeys()
-        #keys = [query.record().field().is]
 
         for i in range(x):
             self.addDelLabels.append(QtWidgets.QLabel(names[i]))
@@ -167,9 +189,20 @@ class App(Ui_Form):
             if types[i] == "Ciąg znaków":
                 while options_query.next():
                     self.addDelLineEdits[-1].addItem(str(options_query.value(0)))
-            #TODO self.addDelLineEdits[-1].setInputMask("X")
+            if types[i] == "Data w formacie YYYY-MM-DD":
+                self.addDelLineEdits[-1].setCurrentText("YYYY-MM-DD")
             self.addDelLineEdits[-1].setToolTip(types[i])
             self.formLayout.addRow(self.addDelLabels[i], self.addDelLineEdits[i])
+
+    def checkBook(self):
+        query = QtSql.QSqlQuery(self.conn)
+        sql = "SELECT czy_wypozyczony(" + self.lineEdit_2_1.text().strip() + ")"
+        try:
+            query.exec_(sql)
+        except:
+            self.showError(query.lastError())
+        QMessageBox.information(None, "Informacja", "Egzemplarz " +
+                                ("wypożyczony" if query.value(1) else "nie jest wypożyczony lub nie istnieje"))
 
 
     def __getFieldsFromUI(self):
@@ -181,7 +214,7 @@ class App(Ui_Form):
                 args.append(self.addDelLineEdits[i].currentText())
         return fieldNames, args
 
-    def insertData(self):
+    def __insertData(self):
         fieldNames, args = self.__getFieldsFromUI()
         if args:
             tabFields = self.textTr.listToCommaStr(fieldNames, False)
@@ -196,9 +229,9 @@ class App(Ui_Form):
                 print("ERROR: ", s)
                 self.showError(query.lastError())
         else:
-            self.showError(-5)
+            QMessageBox.critical(None, "Błąd", "Wypełnij pola!")
 
-    def deleteData(self):
+    def __deleteData(self):
 
         fieldNames, args = self.__getFieldsFromUI()
         if args:
@@ -216,9 +249,9 @@ class App(Ui_Form):
                 self.showError(query.lastError())
                 print(query.lastError().text())
         else:
-            self.showError(-5)
+            QMessageBox.critical(None, "Błąd", "Wypełnij pola!")
 
-    def borrow(self):
+    def __borrow(self):
         query = QtSql.QSqlQuery()
         pesel = self.lineEdit_0_1.text()
         number = self.spinBox.text()
@@ -228,8 +261,8 @@ class App(Ui_Form):
         if query.lastError().isValid():
             self.showError(query.lastError())
 
-    def addUser(self):
-        query = QtSql.QSqlQuery()
+    def __addUser(self):
+        query = QtSql.QSqlQuery(self.conn)
         args = [self.lineEdit_1_1, self.lineEdit_1_2, self.lineEdit_1_3,
                 self.lineEdit_1_4, self.lineEdit_1_5, self.lineEdit_1_6,
                 self.lineEdit_1_7, self.lineEdit_1_8, self.lineEdit_1_9,
@@ -246,11 +279,13 @@ class App(Ui_Form):
             bar = []
             for i in foo:
                 bar.append(i)
-            bar = self.textTr.listToCommaStr(list, True)
+            bar = self.textTr.listToCommaStr(bar, True)
             sql = "CALL add_user(" + bar + ")"
             query.exec_(sql)
             if query.lastError().isValid():
                 self.showError(query.lastError())
+            else:
+                QMessageBox.information(None, "Sukces!", "Pomyślnie dodano użytkownika!")
         else:
             self.showError(query.lastError())
 
