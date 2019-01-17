@@ -63,7 +63,7 @@ class App(Ui_Form):
 
         _translate = QtCore.QCoreApplication.translate
 
-        self.comboBox.currentTextChanged.connect(lambda: self.putDataIntoTableView(self.comboBox.currentText(), self.tableView))
+        self.comboBox.currentTextChanged.connect(lambda: self.putDataIntoTableView(self.comboBox.currentText()))
         self.putDataIntoTableView(self.comboBox.currentText())
         self.putDataIntoTableView(self.comboBox.currentText())
         self.comboBox_2.currentTextChanged.connect(lambda: self.showTableParameters(self.comboBox_2.currentText()))
@@ -72,8 +72,14 @@ class App(Ui_Form):
         self.addButton.released.connect(self.__insertData)
         self.borrowButton.released.connect(self.__borrow)
         self.addUserButton.released.connect(self.__addUser)
-        self.searchButton.released.connect(self.searchTable)
-
+        self.searchButton.released.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
+                                                                    self.adminSearchEdits, self.tableView_2))
+        self.addingSearchButton.released.connect(lambda: self.searchTable(self.comboBox_7, self.addSearchLabels,
+                                                                    self.addSearchEdits, self.tableView_3))
+        self.borrowSearchButton.released.connect(lambda: self.searchTable(self.comboBox_8, self.borrowSearchLabels,
+                                                                    self.borrowSearchEdits, self.tableView_4))
+        self.registerSearchButton.released.connect(lambda: self.searchTable(self.comboBox_9, self.registerSearchLabels,
+                                                                    self.registerSearchEdits, self.tableView_5))
         self.modelTab = QtSql.QSqlTableModel(db=self.conn)
         self.modelTab.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)
         self.modelTab.dataChanged.connect(self.editHandle)
@@ -118,30 +124,32 @@ class App(Ui_Form):
         if self.modelTab.lastError().isValid():
             self.showError(self.modelTab.lastError())
 
-    def searchTable(self):
-        tablename = self.comboBox.currentText()
+    def searchTable(self, comboBox, searchLabels, searchEdits, tableView):
+        tablename = comboBox.currentText()
         argnames = []
         args = []
-        print(len(self.adminSearchLabels))
+        print(len(searchLabels))
 
-        for i in range(len(self.adminSearchLabels)):
-            if len(self.adminSearchEdits[i].text()) > 0:
-                args.append(self.adminSearchEdits[i].text())
-                argnames.append(self.adminSearchLabels[i].text())
+        for i in range(len(searchLabels)):
+            if len(searchEdits[i].text()) > 0:
+                args.append(searchEdits[i].text())
+                argnames.append(searchLabels[i].text())
+        query = QtSql.QSqlQuery(self.conn)
         if args:
             args = self.textTr.wrapStringsWith(args, "'")
-            query = QtSql.QSqlQuery(self.conn)
             parsed_args = [argnames[i] + "=" + args[i] for i in range(len(args))]
             parsed_args = self.textTr.listToCommaStr(parsed_args, False)
             print(parsed_args)
 
             sql = "SELECT * FROM " + tablename + " WHERE " + parsed_args
-            projectModel = QtSql.QSqlQueryModel()
-            projectModel.setQuery(sql, self.conn)
-            print(sql)
-            query.exec_(sql)
-            self.tableView_2.setModel(projectModel)
-            self.tableView_2.show()
+        else:
+            sql = "SELECT * FROM " + tablename
+        projectModel = QtSql.QSqlQueryModel()
+        projectModel.setQuery(sql, self.conn)
+        print(sql)
+        query.exec_(sql)
+        tableView.setModel(projectModel)
+        tableView.show()
 
     def showing(self, comboBox, horizontalLayout, searchLabels, searchEdits):
         name = comboBox.currentText()
