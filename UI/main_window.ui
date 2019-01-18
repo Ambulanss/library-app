@@ -37,11 +37,11 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
-         <string>Zarejestruj użytkownika</string>
+         <string>Zarejestruj użytkownika w filii</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_5">
          <item row="0" column="0">
@@ -58,7 +58,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="label_6">
                <property name="text">
-                <string>Pesel*</string>
+                <string>1.Pesel*</string>
                </property>
               </widget>
              </item>
@@ -78,7 +78,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="label_7">
                <property name="text">
-                <string>Imię*</string>
+                <string>2.Imię*</string>
                </property>
               </widget>
              </item>
@@ -95,7 +95,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="label_8">
                <property name="text">
-                <string>Nazwisko*</string>
+                <string>3.Nazwisko*</string>
                </property>
               </widget>
              </item>
@@ -112,7 +112,7 @@
              <item row="3" column="0">
               <widget class="QLabel" name="label_9">
                <property name="text">
-                <string>Data urodzenia</string>
+                <string>4.Data urodzenia*</string>
                </property>
               </widget>
              </item>
@@ -135,7 +135,7 @@
              <item row="4" column="0">
               <widget class="QLabel" name="label_10">
                <property name="text">
-                <string>Miasto*</string>
+                <string>5.Miasto*</string>
                </property>
               </widget>
              </item>
@@ -152,7 +152,7 @@
              <item row="5" column="0">
               <widget class="QLabel" name="label_11">
                <property name="text">
-                <string>Powiat*</string>
+                <string>6.Powiat*</string>
                </property>
               </widget>
              </item>
@@ -169,7 +169,7 @@
              <item row="6" column="0">
               <widget class="QLabel" name="label_14">
                <property name="text">
-                <string>Województwo*</string>
+                <string>7.Województwo*</string>
                </property>
               </widget>
              </item>
@@ -186,7 +186,7 @@
              <item row="7" column="0">
               <widget class="QLabel" name="label_15">
                <property name="text">
-                <string>Numer lokalu*</string>
+                <string>8.Numer lokalu*</string>
                </property>
               </widget>
              </item>
@@ -203,7 +203,7 @@
              <item row="8" column="0">
               <widget class="QLabel" name="label_16">
                <property name="text">
-                <string>Ulica*</string>
+                <string>9.Ulica*</string>
                </property>
               </widget>
              </item>
@@ -217,7 +217,7 @@
              <item row="9" column="0">
               <widget class="QLabel" name="label_17">
                <property name="text">
-                <string>Kod pocztowy*</string>
+                <string>10.Kod pocztowy*</string>
                </property>
               </widget>
              </item>
@@ -231,12 +231,22 @@
                </property>
               </widget>
              </item>
-             <item row="10" column="0">
+             <item row="11" column="0">
               <widget class="QLabel" name="label">
                <property name="text">
                 <string>* - pole obowiązkowe</string>
                </property>
               </widget>
+             </item>
+             <item row="10" column="0">
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>11.Filia*</string>
+               </property>
+              </widget>
+             </item>
+             <item row="10" column="1">
+              <widget class="QLineEdit" name="lineEdit_1_11"/>
              </item>
             </layout>
            </item>
@@ -366,7 +376,7 @@
          <item row="0" column="0">
           <widget class="QTabWidget" name="tabWidget_2">
            <property name="currentIndex">
-            <number>1</number>
+            <number>2</number>
            </property>
            <widget class="QWidget" name="tab_5">
             <attribute name="title">
@@ -490,7 +500,7 @@
                <item row="2" column="0">
                 <widget class="QLabel" name="label_38">
                  <property name="text">
-                  <string>Dni do wygaśnięcia</string>
+                  <string>Dni do wygaśnięcia rezerwacji</string>
                  </property>
                 </widget>
                </item>

@@ -72,6 +72,10 @@ class App(Ui_Form):
         self.addButton.released.connect(self.__insertData)
         self.borrowButton.released.connect(self.__borrow)
         self.addUserButton.released.connect(self.__addUser)
+        self.adminSearchLabels, self.adminSearchEdits = [], []
+        self.addSearchLabels, self.addSearchEdits = [], []
+        self.borrowSearchLabels, self.borrowSearchEdits = [], []
+        self.registerSearchLabels, self.registerSearchEdits = [], []
         self.searchButton.released.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
                                                                     self.adminSearchEdits, self.tableView_2))
         self.addingSearchButton.released.connect(lambda: self.searchTable(self.comboBox_7, self.addSearchLabels,
@@ -85,10 +89,7 @@ class App(Ui_Form):
         self.modelTab.dataChanged.connect(self.editHandle)
         self.tableView.setModel(self.modelTab)
         self.tableView.setSortingEnabled(True)
-        self.adminSearchLabels, self.adminSearchEdits = [], []
-        self.addSearchLabels, self.addSearchEdits = [], []
-        self.borrowSearchLabels, self.borrowSearchEdits = [], []
-        self.registerSearchLabels, self.registerSearchEdits = [], []
+
         self.comboBox_3.currentTextChanged.connect(lambda: self.showing(self.comboBox_3, self.horizontalLayout,
                                                                         self.adminSearchLabels, self.adminSearchEdits))
         self.comboBox_7.currentTextChanged.connect(lambda: self.showing(self.comboBox_7, self.addSearchLabelsLayout,
@@ -290,6 +291,9 @@ class App(Ui_Form):
         if number == "":
             QMessageBox.critical(None, "Błąd!", "Wypełnij pole Numer egzemplarza")
             return
+        if not number.isdigit():
+            QMessageBox.critical(None, "Błąd!", "Pole numer egzemplarza musi zawierać tylko numer!")
+            return
         query = QtSql.QSqlQuery(self.conn)
         sql = "SELECT * FROM Wypożyczenie WHERE rzeczywista_data_oddania = NULL and egzemplarz_id_egzemplarza = "\
               + number
@@ -298,37 +302,50 @@ class App(Ui_Form):
         if(query.next()):
             helpQuery.exec_("UPDATE Wypożyczenie SET rzeczywista_data_oddania = CURDATE() "
                             "WHERE rzeczywista_data_oddania = NULL and egzemplarz_id_egzemplarza = " + number)
+        else:
+            QMessageBox.information(None, "Brak danej", "W bazie nie ma wypożyczonego egzemplarza o tym numerze")
+            return
         if query.lastError().isValid():
             QMessageBox.critical(None, "Błąd!", query.lastError().text())
+        if helpQuery.lastError().isValid():
+            QMessageBox.critical(None, "Błąd!", helpQuery.lastError().text())
 
 
     def __addUser(self):
         query = QtSql.QSqlQuery(self.conn)
+
         args = [self.lineEdit_1_1, self.lineEdit_1_2, self.lineEdit_1_3,
                 self.lineEdit_1_4, self.lineEdit_1_5, self.lineEdit_1_6,
                 self.lineEdit_1_7, self.lineEdit_1_8, self.lineEdit_1_9,
-                self.lineEdit_1_10]
+                self.lineEdit_1_10, self.lineEdit_1_11]
+
         text_ = QtWidgets.QLineEdit.text
-        foo = []
-        for i in args:
-            if len(text_(i)) > 0:
-                foo.append(text_(i))
-            else:
-                foo = []
-                break
-        if len(foo):
-            bar = []
-            for i in foo:
-                bar.append(i)
-            bar = self.textTr.listToCommaStr(bar, True)
-            sql = "CALL add_user(" + bar + ")"
-            query.exec_(sql)
-            if query.lastError().isValid():
-                self.showError(query.lastError())
-            else:
-                QMessageBox.information(None, "Sukces!", "Pomyślnie dodano użytkownika!")
+        arg_values = [text_(i) for i in args[:-1]]
+        filia = "'" + args[-1].text() + "'"
+        for i in range(len(arg_values)):
+            if len(arg_values[i]) == 0:
+                QMessageBox.information(None, "Błąd!", "Pole nr " + str(i + 1) + " jest puste!")
+                return
+        w_args = self.textTr.wrapStringsWith(arg_values, "'")
+        sql = "SELECT * FROM Użytkownik WHERE pesel like " + w_args[0]
+        query.exec_(sql)
+        if not query.next():
+            addingtext = self.textTr.listToCommaStr(w_args, False)
+            query.exec_("CALL add_user(" + addingtext + ")")
+            query.exec_("INSERT INTO Przynależność_do_filii VALUES(" + filia + ", " + w_args[0] + ")")
         else:
+            query.exec_("SELECT * FROM Przynależność_do_filii WHERE filia_numer = " + filia + " and uzytkownik_pesel = " + w_args[0])
+            if query.next():
+                QMessageBox.information(None, "Informacja", "Użytkownik o takim peselu należy już do tej filii.")
+                return
+            else:
+                query.exec_("INSERT INTO Przynależność_do_filii VALUES(" + filia + ", " + w_args[0] + ")")
+        if query.lastError().isValid():
             self.showError(query.lastError())
+        else:
+            QMessageBox.information(None, "Sukces!", "Pomyślnie dodano użytkownika!")
+
+
 
 
 
