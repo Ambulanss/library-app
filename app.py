@@ -102,6 +102,9 @@ class App(Ui_Form):
         self.tabWidget.currentChanged.connect(lambda: self.showTableParameters(self.comboBox_2.currentText()))
 
 
+        self.borrowButton.released.connect(self.__borrow)
+        self.returnButton.released.connect(self.__return)
+
     def getDB(self):
         self.conn = QtSql.QSqlDatabase.addDatabase('QMYSQL')
         self.conn.setHostName("localhost")
@@ -261,13 +264,43 @@ class App(Ui_Form):
 
     def __borrow(self):
         query = QtSql.QSqlQuery()
-        pesel = self.lineEdit_0_1.text()
-        number = self.spinBox.text()
-        time = self.spinBox_2.text()
+        pesel = self.borrowEdit.text()
+        number = self.borrowEdit_1.text()
+        time = self.borrowEdit_2.text()
+        if pesel == "":
+            QMessageBox.critical(None, "Błąd!", "Wypełnij pole pesel")
+            return
+        if number == "":
+            QMessageBox.critical(None, "Błąd!", "Wypełnij pole Numer egzemplarza")
+            return
+        if time == "":
+            QMessageBox.critical(None, "Błąd!", "Wypełnij pole Dni na oddanie")
+            return
         sql = "CALL borrow_book(" + pesel + ", " + number + ", " + time + ")"
         query.exec_(sql)
+
         if query.lastError().isValid():
             self.showError(query.lastError())
+            return
+        QMessageBox.information(self, "Sukces!", "Dodano wypożyczenie!")
+
+
+    def __return(self):
+        number = self.returnEdit.text()
+        if number == "":
+            QMessageBox.critical(None, "Błąd!", "Wypełnij pole Numer egzemplarza")
+            return
+        query = QtSql.QSqlQuery(self.conn)
+        sql = "SELECT * FROM Wypożyczenie WHERE rzeczywista_data_oddania = NULL and egzemplarz_id_egzemplarza = "\
+              + number
+        query.exec_(sql)
+        helpQuery = QtSql.QSqlQuery(self.conn)
+        if(query.next()):
+            helpQuery.exec_("UPDATE Wypożyczenie SET rzeczywista_data_oddania = CURDATE() "
+                            "WHERE rzeczywista_data_oddania = NULL and egzemplarz_id_egzemplarza = " + number)
+        if query.lastError().isValid():
+            QMessageBox.critical(None, "Błąd!", query.lastError().text())
+
 
     def __addUser(self):
         query = QtSql.QSqlQuery(self.conn)
