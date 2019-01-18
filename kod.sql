@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS Gatunek (
 CREATE TABLE IF NOT EXISTS Dzieło (
     id_dziela      INT AUTO_INCREMENT,
     tytul          VARCHAR(100) NOT NULL,
-    rok_wydania    INTEGER NOT NULL,
+    rok_wydania    INTEGER,
     kraj           VARCHAR(200),
     typ            VARCHAR(7) NOT NULL,
     PRIMARY KEY (id_dziela)
@@ -78,7 +78,6 @@ CREATE TABLE IF NOT EXISTS Dział (
 CREATE TABLE IF NOT EXISTS Autorstwo_dzieła (
     dzielo_id_dziela   INTEGER NOT NULL,
     autor_id_autora    INTEGER NOT NULL,
-    dzielo_typ         VARCHAR(100) NOT NULL,
     PRIMARY KEY (dzielo_id_dziela, autor_id_autora),
     FOREIGN KEY ( autor_id_autora ) REFERENCES Autor ( id_autora ) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY ( dzielo_id_dziela )

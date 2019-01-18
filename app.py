@@ -105,6 +105,8 @@ class App(Ui_Form):
 
         self.borrowButton.released.connect(self.__borrow)
         self.returnButton.released.connect(self.__return)
+        self.reserveButton.released.connect(self.reservation)
+        self.addButton_2.released.connect(self.addBook)
 
     def getDB(self):
         self.conn = QtSql.QSqlDatabase.addDatabase('QMYSQL')
@@ -154,6 +156,100 @@ class App(Ui_Form):
         query.exec_(sql)
         tableView.setModel(projectModel)
         tableView.show()
+
+    def addBook(self):
+        title = self.lineEdit_2.text()
+        authorname = self.lineEdit_3.text()
+        authorsurname = self.lineEdit_4.text()
+        filia = self.lineEdit.text()
+        dzial = self.comboBox_6.currentText()
+        type = self.comboBox_4.currentText()
+        year = self.lineEdit_5.text()
+        genre = self.lineEdit_6.text()
+        message = ""
+        mistake = 0
+        if title == "":
+            mistake += 1
+            message += "Tytuł, "
+        if authorname == "":
+            mistake += 1
+            message += "Imię autora, "
+        if authorsurname == "":
+            mistake += 1
+            message += "Nazwisko autora, "
+        if filia == "":
+            mistake += 1
+            message += "Numer filii, "
+        if dzial == "":
+            mistake += 1
+            message += "Dział"
+        if mistake > 0:
+            QMessageBox.information(None, "Błąd!", "Uzupełnij następujące pola: " + message)
+            return
+        checkQuery = QtSql.QSqlQuery(self.conn)
+        checkAuthorSql = "SELECT id_autora FROM Autor WHERE imie like '" + authorname + "' and nazwisko like '" + authorsurname + "'"
+        checkQuery.exec_(checkAuthorSql)
+        id_autora = -1
+        if checkQuery.next():
+            id_autora = checkQuery.value(0)
+        else:
+            print(authorname, authorsurname)
+            id_autora = self.addAuthor(authorname, authorsurname)
+        print("Id autora: ", id_autora)
+        checkQuery.exec_("INSERT IGNORE INTO Dzieło(tytul, typ) VALUES('" + title + "', '" + type + "')")
+        checkQuery.exec_("SELECT id_dziela from Dzieło where tytul =  '" + title + "'")
+        checkQuery.next()
+        id_dziela = checkQuery.value(0)
+        print("Id dzieła: ", id_dziela)
+        checkQuery.exec_("INSERT IGNORE INTO Dział VALUES('" + dzial + "', ' " + filia + "')")
+        values = [str(id_dziela), type, filia, dzial]
+        foo = self.textTr.listToCommaStr(values, True)
+        sql = "INSERT INTO Egzemplarz(dzielo_id_dziela, dzielo_typ, dzial_filia_numer, dzial_nazwa) VALUES(" + foo + ")"
+        print(sql)
+        checkQuery.exec_(sql)
+        checkQuery.exec_("INSERT IGNORE INTO Autorstwo_dzieła VALUES('" + str(id_dziela) + "', '" + str(id_autora) + "')")
+        if checkQuery.lastError().isValid():
+            print(checkQuery.lastError().text())
+
+
+
+    def addAuthor(self, name, surname):
+        query = QtSql.QSqlQuery(self.conn)
+        query.exec_("INSERT INTO Autor(imie, nazwisko)"
+                    "VALUES ('" + name + "', '" + surname + "')")
+
+        query.exec_("SELECT id_autora FROM Autor where imie like '" + name + "' and nazwisko like '" + surname +"'")
+
+        return query.value(0)
+
+    def reservation(self):
+
+        pesel = self.lineEdit_9.text()
+        number = self.lineEdit_10.text()
+        days = self.lineEdit_11.text()
+        if pesel == "":
+            QMessageBox.information(None, "Błąd!", "Uzupełnij pesel!")
+            return
+        if number == "":
+            QMessageBox.information(None, "Błąd!", "Uzupełnij numer egzemplarza!")
+            return
+        if not number.isdigit():
+            QMessageBox.information(None, "Błąd!", "Numer egzemplarza to liczba!")
+            return
+        if days == "":
+            QMessageBox.information(None, "Błąd!", "Uzupełnij liczbę dni do upłynięcia rezerwacji!")
+            return
+        if not days.isdigit():
+            QMessageBox.information(None, "Błąd!", "Liczba dni do upłynięcia rezerwacji to liczba!")
+            return
+
+        query = QtSql.QSqlQuery(self.conn)
+        sql = "INSERT INTO Rezerwacja VALUES( CURDATE(), CURDATE() + " + days + ", '" + pesel + "', '" + number + "', 'AKTYWNA')"
+        print(sql)
+        query.exec_(sql)
+        if query.lastError().isValid():
+            QMessageBox.critical(None, "Błąd!", query.lastError().text())
+
 
     def showing(self, comboBox, horizontalLayout, searchLabels, searchEdits):
         name = comboBox.currentText()

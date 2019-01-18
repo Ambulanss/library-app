@@ -376,7 +376,7 @@
          <item row="0" column="0">
           <widget class="QTabWidget" name="tabWidget_2">
            <property name="currentIndex">
-            <number>2</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="tab_5">
             <attribute name="title">
@@ -524,72 +524,6 @@
              </item>
             </layout>
            </widget>
-           <widget class="QWidget" name="tab_8">
-            <attribute name="title">
-             <string>Zatwierdź rezerwację i wypożycz</string>
-            </attribute>
-            <layout class="QGridLayout" name="gridLayout_10">
-             <item row="1" column="0">
-              <widget class="QPushButton" name="resAndBorButton">
-               <property name="text">
-                <string>Zatwierdź</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <layout class="QFormLayout" name="formLayout_7">
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_39">
-                 <property name="text">
-                  <string>Numer egzemplarza</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="label_40">
-                 <property name="text">
-                  <string>Dni na oddanie</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="lineEdit_12"/>
-               </item>
-               <item row="1" column="1">
-                <widget class="QLineEdit" name="lineEdit_13"/>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </widget>
-           <widget class="QWidget" name="tab_7">
-            <attribute name="title">
-             <string>Anuluj rezerwację</string>
-            </attribute>
-            <layout class="QGridLayout" name="gridLayout_11">
-             <item row="2" column="0">
-              <widget class="QPushButton" name="cancelResButton">
-               <property name="text">
-                <string>Potwierdź ANULOWANIE rezerwacji</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <layout class="QFormLayout" name="formLayout_10">
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="lineEdit_14"/>
-               </item>
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_41">
-                 <property name="text">
-                  <string>Numer egzemplarza</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </widget>
           </widget>
          </item>
         </layout>
@@ -657,7 +591,7 @@
           </layout>
          </item>
          <item row="1" column="0">
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="addButton_2">
            <property name="text">
             <string>Dodaj</string>
            </property>
@@ -672,12 +606,18 @@
              </property>
             </widget>
            </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="lineEdit_2"/>
+           </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_23">
              <property name="text">
               <string>Imię autora*</string>
              </property>
             </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="lineEdit_3"/>
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_24">
@@ -686,12 +626,18 @@
              </property>
             </widget>
            </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="lineEdit_4"/>
+           </item>
            <item row="4" column="0">
             <widget class="QLabel" name="label_26">
              <property name="text">
               <string>Numer filii*</string>
              </property>
             </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLineEdit" name="lineEdit"/>
            </item>
            <item row="5" column="0">
             <widget class="QLabel" name="label_27">
@@ -700,48 +646,12 @@
              </property>
             </widget>
            </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="label_28">
-             <property name="text">
-              <string>Rok wydania</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="label_29">
-             <property name="text">
-              <string>Gatunek</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="lineEdit_2"/>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLineEdit" name="lineEdit_3"/>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLineEdit" name="lineEdit_4"/>
-           </item>
-           <item row="4" column="1">
-            <widget class="QComboBox" name="comboBox_5"/>
-           </item>
            <item row="5" column="1">
             <widget class="QComboBox" name="comboBox_6">
              <property name="editable">
               <bool>true</bool>
              </property>
             </widget>
-           </item>
-           <item row="7" column="1">
-            <widget class="QLineEdit" name="lineEdit_5">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="1">
-            <widget class="QLineEdit" name="lineEdit_6"/>
            </item>
            <item row="6" column="0">
             <widget class="QLabel" name="label_25">
@@ -764,7 +674,7 @@
              </item>
             </widget>
            </item>
-           <item row="9" column="0">
+           <item row="7" column="0">
             <widget class="QLabel" name="label_31">
              <property name="text">
               <string>* - pole obowiązkowe</string>
