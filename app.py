@@ -164,7 +164,6 @@ class App(Ui_Form):
             horizontalLayout.itemAt(i).widget().close()
         names = [query.record().fieldName(i) for i in range(x)]
         types = [self.fieldTypeDict.get(query.record().field(i).type(), "") for i in range(x)]
-        searchLabels, searchEdits = [], []
 
         for i in range(x):
             searchLabels.append(QtWidgets.QLabel(names[i]))
