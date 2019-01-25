@@ -166,23 +166,24 @@ class App(Ui_Form):
         type = self.comboBox_4.currentText()
         message = ""
         mistake = 0
+        id_autora = -1
         if title == "":
             mistake += 1
-            message += "Tytuł, "
+            message += "Tytuł\n"
         if authorname == "":
             mistake += 1
-            message += "Imię autora, "
+            message += "Imię autora\n"
         if authorsurname == "":
             mistake += 1
-            message += "Nazwisko autora, "
+            message += "Nazwisko autora\n"
         if filia == "":
             mistake += 1
-            message += "Numer filii, "
+            message += "Numer filii\n"
         if dzial == "":
             mistake += 1
             message += "Dział"
         if mistake > 0:
-            QMessageBox.information(None, "Błąd!", "Uzupełnij następujące pola: " + message)
+            QMessageBox.information(None, "Błąd!", "Uzupełnij następujące pola:\n " + message)
             return
         checkQuery = QtSql.QSqlQuery(self.conn)
         checkQuery.exec_("SELECT * from Filia where numer = '" + str(filia) + "'")
@@ -193,9 +194,9 @@ class App(Ui_Form):
             return
         checkAuthorSql = "SELECT id_autora FROM Autor WHERE imie like '" + authorname + "' and nazwisko like '" + authorsurname + "'"
         checkQuery.exec_(checkAuthorSql)
-        id_autora = -1
         if checkQuery.next():
             id_autora = checkQuery.value(0)
+            print("DEBUG autor: ", id_autora)
         else:
             print(authorname, authorsurname)
             id_autora = self.addAuthor(authorname, authorsurname)
@@ -215,7 +216,8 @@ class App(Ui_Form):
         sql = "INSERT INTO Egzemplarz(dzielo_id_dziela, dzielo_typ, dzial_filia_numer, dzial_nazwa) VALUES(" + foo + ")"
         print(sql)
         checkQuery.exec_(sql)
-        checkQuery.exec_("INSERT IGNORE INTO Autorstwo_dzieła VALUES('" + str(id_dziela) + "', '" + str(id_autora) + "')")
+        checkQuery.exec_("INSERT IGNORE INTO Autorstwo_dzieła VALUES(" + str(id_dziela) + ", " + str(id_autora) + ")")
+
         if checkQuery.lastError().isValid():
             print(checkQuery.lastError().text())
 
