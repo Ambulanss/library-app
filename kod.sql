@@ -193,7 +193,7 @@ CREATE TABLE IF NOT EXISTS Wypożyczenie (
 
 --DODANIE UZYTKOWNIKA
 DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS add_user (IN pesel VARCHAR(11), 
+CREATE PROCEDURE add_user (IN pesel VARCHAR(11), 
     IN imie VARCHAR(50),
     IN nazwisko VARCHAR(50),
     IN data DATE,
@@ -223,7 +223,7 @@ DELIMITER ;
 
 DELIMITER $$
 --CZY EGZEMPLARZ JEST WYPOZYCZONY CZY ZAREZERWOWANY
-CREATE FUNCTION IF NOT EXISTS czy_wypozyczony(id INT) RETURNS VARCHAR(50)
+CREATE FUNCTION czy_wypozyczony(id INT) RETURNS VARCHAR(50)
 BEGIN
     DECLARE licznik INT DEFAULT 0;
     DECLARE flag VARCHAR(50);
@@ -247,7 +247,7 @@ BEGIN
 END$$
 
 --WYPOZYCZENIE
-CREATE PROCEDURE IF NOT EXISTS borrow_book (IN pesel VARCHAR(11),
+CREATE PROCEDURE borrow_book (IN pesel VARCHAR(11),
 				IN egzemp INT,
 				IN czas INT)
 BEGIN
@@ -263,14 +263,14 @@ DELIMITER ;
 
 -----------------------------------------------
 --Autorzy i ich dzieła
-CREATE VIEW IF NOT EXISTS Autorzy_i_dzieła AS
+CREATE VIEW Autorzy_i_dzieła AS
 SELECT a.imie AS "Imię autora", a.nazwisko AS "Nazwisko autora",  d.tytul AS "Tytuł"
 FROM Autor a, Autorstwo_dzieła b, Dzieło d
 WHERE a.id_autora = b.autor_id_autora AND d.id_dziela = b.dzielo_id_dziela;
 
 --Dzieła i ich egzemplarze
-CREATE VIEW IF NOT EXISTS Egzemplarze_i_dzieła AS
-SELECT e.id_egzemplarza AS "Numer egzemplarza",
+CREATE VIEW Egzemplarze_i_dzieła AS
+SELECT DISTINCT e.id_egzemplarza AS "Numer egzemplarza",
 d.tytul AS "Tytuł", 
 e.rok_wyd_dodruku AS "Wydanie", 
 e.dzial_nazwa AS "Dział", 
@@ -283,14 +283,14 @@ and a.id_autora = b.autor_id_autora
 and d.id_dziela = b.dzielo_id_dziela;
 
 --UZYTKOWNICY W FILIACH
-CREATE VIEW IF NOT EXISTS Użytkownicy_w_filiach
+CREATE VIEW Użytkownicy_w_filiach
 AS
     SELECT p.filia_numer AS "Filia", p.uzytkownik_pesel AS "Pesel", u.imie AS "Imię", u.nazwisko AS "Nazwisko"
     FROM Przynależność_do_filii p, Użytkownik u 
     WHERE u.pesel = p.uzytkownik_pesel;
 
 --WYPOZYCZENIA UZYTKOWNIKoW
-CREATE VIEW IF NOT EXISTS Wypożyczenia_użytkowników
+CREATE VIEW Wypożyczenia_użytkowników
 AS
     SELECT u.pesel as "PESEL", 
     u.imie AS "Imię", 
@@ -303,11 +303,12 @@ AS
     FROM Wypożyczenie w, Egzemplarz e, Dzieło d, Użytkownik u
         WHERE w.egzemplarz_id_egzemplarza = e.id_egzemplarza 
         and u.pesel = w.uzytkownik_pesel 
-        and d.id_dziela = e.dzielo_id_dziela
-        and czy_wypozyczony(e.id_egzemplarza) = "WYPOŻYCZONY";
+        and d.id_dziela = e.dzielo_id_dziela;
+        -- TODO
+        -- and czy_wypozyczony(e.id_egzemplarza) = "WYPOŻYCZONY";
 
 --SPOZNIENI Z ODDANIEM KSIAZKI
-CREATE VIEW IF NOT EXISTS Spóźnialscy
+CREATE VIEW Spóźnialscy
 AS
 	SELECT u.pesel AS "PESEL", 
     u.imie AS "Imię", 

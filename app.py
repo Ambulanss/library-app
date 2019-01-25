@@ -229,7 +229,7 @@ class App(Ui_Form):
                     "VALUES ('" + name + "', '" + surname + "')")
 
         query.exec_("SELECT id_autora FROM Autor where imie like '" + name + "' and nazwisko like '" + surname +"'")
-
+        query.next()
         return query.value(0)
 
     def reservation(self):
@@ -388,7 +388,7 @@ class App(Ui_Form):
         if query.lastError().isValid():
             self.showError(query.lastError())
             return
-        QMessageBox.information(self, "Sukces!", "Dodano wypożyczenie!")
+        QMessageBox.information(None, "Sukces!", "Dodano wypożyczenie!")
 
 
     def __return(self):
