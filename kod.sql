@@ -252,11 +252,11 @@ CREATE PROCEDURE IF NOT EXISTS borrow_book (IN pesel VARCHAR(11),
 				IN czas INT)
 BEGIN
 
-    IF(czy_wypozyczony(egzemp) = 1) THEN 
+    IF(czy_wypozyczony(egzemp) = "WYPOŻYCZONY") THEN 
         SIGNAL SQLSTATE '45000';
     END IF;
 	INSERT INTO Wypożyczenie
-	VALUES (CURDATE(), CURDATE() + czas, pesel, 0, 0, NULL, egzemp);
+	VALUES (CURDATE(), DATE_ADD(CURDATE(), INTERVAL czas DAY), pesel, NULL, egzemp);
 END$$
 
 DELIMITER ;
@@ -275,14 +275,12 @@ d.tytul AS "Tytuł",
 e.rok_wyd_dodruku AS "Wydanie", 
 e.dzial_nazwa AS "Dział", 
 e.dzial_filia_numer AS "Filia",
-p.gatunek_nazwa AS "Gatunek",
 czy_wypozyczony(e.id_egzemplarza) AS "Status"
 FROM Egzemplarz e, Dzieło d, Autor a, 
-Autorstwo_dzieła b, Przynależność_do_gatunku p
+Autorstwo_dzieła b
 WHERE d.id_dziela = e.dzielo_id_dziela 
 and a.id_autora = b.autor_id_autora 
-and d.id_dziela = b.dzielo_id_dziela
-and p.dzielo_id_dziela = d.id_dziela;
+and d.id_dziela = b.dzielo_id_dziela;
 
 --UZYTKOWNICY W FILIACH
 CREATE VIEW IF NOT EXISTS Użytkownicy_w_filiach

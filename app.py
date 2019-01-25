@@ -164,8 +164,6 @@ class App(Ui_Form):
         filia = self.lineEdit.text()
         dzial = self.comboBox_6.currentText()
         type = self.comboBox_4.currentText()
-        year = self.lineEdit_5.text()
-        genre = self.lineEdit_6.text()
         message = ""
         mistake = 0
         if title == "":
@@ -187,6 +185,12 @@ class App(Ui_Form):
             QMessageBox.information(None, "Błąd!", "Uzupełnij następujące pola: " + message)
             return
         checkQuery = QtSql.QSqlQuery(self.conn)
+        checkQuery.exec_("SELECT * from Filia where numer = '" + str(filia) + "'")
+        if checkQuery.next():
+            pass
+        else:
+            QMessageBox.critical(None, "Błąd!", "Nie ma filii o podanym numerze!")
+            return
         checkAuthorSql = "SELECT id_autora FROM Autor WHERE imie like '" + authorname + "' and nazwisko like '" + authorsurname + "'"
         checkQuery.exec_(checkAuthorSql)
         id_autora = -1
@@ -196,7 +200,11 @@ class App(Ui_Form):
             print(authorname, authorsurname)
             id_autora = self.addAuthor(authorname, authorsurname)
         print("Id autora: ", id_autora)
-        checkQuery.exec_("INSERT IGNORE INTO Dzieło(tytul, typ) VALUES('" + title + "', '" + type + "')")
+        checkQuery.exec_("SELECT id_dziela from Dzieło where tytul =  '" + title + "'")
+        if checkQuery.next():
+            pass
+        else:
+            checkQuery.exec_("INSERT IGNORE INTO Dzieło(tytul, typ) VALUES('" + title + "', '" + type + "')")
         checkQuery.exec_("SELECT id_dziela from Dzieło where tytul =  '" + title + "'")
         checkQuery.next()
         id_dziela = checkQuery.value(0)
@@ -372,7 +380,7 @@ class App(Ui_Form):
         if time == "":
             QMessageBox.critical(None, "Błąd!", "Wypełnij pole Dni na oddanie")
             return
-        sql = "CALL borrow_book(" + pesel + ", " + number + ", " + time + ")"
+        sql = "CALL borrow_book('" + pesel + "', " + number + ", " + time + ")"
         query.exec_(sql)
 
         if query.lastError().isValid():
