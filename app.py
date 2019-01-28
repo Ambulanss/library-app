@@ -24,7 +24,10 @@ class TextTransformer():
     def wrapStringsWith(self, strList, char):
         result = []
         for i in strList:
-            result.append(char + i + char)
+            if i.isdigit():
+                result.append(i)
+            else:
+                result.append(char + i + char)
         return result
 
 
@@ -46,6 +49,10 @@ class App(Ui_Form):
         6: "Liczba rzeczywista",
         10: "Ciąg znaków",
         14: "Data w formacie YYYY-MM-DD"
+    }
+
+    colNamesDict = {
+        "Numer egzemplarza": "\"Numer egzemplarza\""
     }
 
     modelTab = QtSql.QSqlTableModel()
@@ -135,11 +142,10 @@ class App(Ui_Form):
         argnames = []
         args = []
         print(len(searchLabels))
-
         for i in range(len(searchLabels)):
             if len(searchEdits[i].text()) > 0:
                 args.append(searchEdits[i].text())
-                argnames.append(searchLabels[i].text())
+                argnames.append(self.colNamesDict.get(searchLabels[i].text(), searchLabels[i].text()))
         query = QtSql.QSqlQuery(self.conn)
         if args:
             args = self.textTr.wrapStringsWith(args, "'")
@@ -270,7 +276,8 @@ class App(Ui_Form):
             horizontalLayout.itemAt(i).widget().close()
         names = [query.record().fieldName(i) for i in range(x)]
         types = [self.fieldTypeDict.get(query.record().field(i).type(), "") for i in range(x)]
-
+        searchLabels.clear()
+        searchEdits.clear()
         for i in range(x):
             searchLabels.append(QtWidgets.QLabel(names[i]))
             searchEdits.append(QtWidgets.QLineEdit())
