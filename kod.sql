@@ -219,7 +219,7 @@ BEGIN
     miasto, powiat, wojewodztwo, nr, ul, kod);
 END;
 
-
+DELIMITER $$
 --CZY EGZEMPLARZ JEST WYPOZYCZONY CZY ZAREZERWOWANY
 CREATE FUNCTION czy_wypozyczony(id INT) RETURNS VARCHAR(50)
 BEGIN
@@ -229,20 +229,24 @@ BEGIN
     SELECT count(*) INTO licznik
         FROM Wypożyczenie
         WHERE 
-            rzeczywista_data_oddania = NULL 
+            rzeczywista_data_oddania IS NULL 
             AND 
             egzemplarz_id_egzemplarza = id;
 
     SET flag = IF(licznik > 0, "WYPOŻYCZONY", NULL);
+    IF (flag = "WYPOŻYCZONY") THEN
+        RETURN flag;
+    END IF;
     SELECT count(*) INTO czy_zarezerwowane
         FROM Rezerwacja
         WHERE
             status like "AKTYWNA"
             AND
             egzemplarz_id_egzemplarza = id;
-    SET flag = IF(czy_zarezerwowane > 0, "ZAREZERWOWANY", NULL);
+    SET flag = IF(czy_zarezerwowane > 0, "ZAREZERWOWANY", "NA PÓŁCE");
     RETURN flag;
-END;
+END$$
+DELIMITER ;
 
 --WYPOZYCZENIE
 CREATE PROCEDURE borrow_book (IN pesel VARCHAR(11),
@@ -286,6 +290,12 @@ AS
     FROM Przynależność_do_filii p, Użytkownik u 
     WHERE u.pesel = p.uzytkownik_pesel;
 
+CREATE VIEW helper_wypożyczenia
+AS 
+    SELECT e.id_egzemplarza as id, czy_wypozyczony(e.id_egzemplarza) AS status
+    FROM Egzemplarz e;
+
+
 --WYPOZYCZENIA UZYTKOWNIKoW
 CREATE VIEW Wypożyczenia_użytkowników
 AS
@@ -303,6 +313,9 @@ AS
         and d.id_dziela = e.dzielo_id_dziela;
         -- TODO
         -- and czy_wypozyczony(e.id_egzemplarza) = "WYPOŻYCZONY";
+
+
+
 
 --SPOZNIENI Z ODDANIEM KSIAZKI
 CREATE VIEW Spóźnialscy
