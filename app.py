@@ -260,7 +260,7 @@ class App(Ui_Form):
             return
 
         query = QtSql.QSqlQuery(self.conn)
-        sql = "INSERT INTO Rezerwacja VALUES( CURDATE(), CURDATE() + " + days + ", '" + pesel + "', '" + number + "', 'AKTYWNA')"
+        sql = "INSERT INTO Rezerwacja VALUES( CURDATE(), ADDDATE(CURDATE(), " + days + "), '" + pesel + "', '" + number + "', 'AKTYWNA')"
         print(sql)
         query.exec_(sql)
         if query.lastError().isValid():
@@ -407,13 +407,14 @@ class App(Ui_Form):
             QMessageBox.critical(None, "Błąd!", "Pole numer egzemplarza musi zawierać tylko numer!")
             return
         query = QtSql.QSqlQuery(self.conn)
-        sql = "SELECT * FROM Wypożyczenie WHERE rzeczywista_data_oddania = NULL and egzemplarz_id_egzemplarza = "\
+        sql = "SELECT * FROM Wypożyczenie WHERE rzeczywista_data_oddania IS NULL and egzemplarz_id_egzemplarza = "\
               + number
+        print(sql)
         query.exec_(sql)
         helpQuery = QtSql.QSqlQuery(self.conn)
         if(query.next()):
             helpQuery.exec_("UPDATE Wypożyczenie SET rzeczywista_data_oddania = CURDATE() "
-                            "WHERE rzeczywista_data_oddania = NULL and egzemplarz_id_egzemplarza = " + number)
+                            "WHERE rzeczywista_data_oddania IS NULL and egzemplarz_id_egzemplarza = " + number)
         else:
             QMessageBox.information(None, "Brak danej", "W bazie nie ma wypożyczonego egzemplarza o tym numerze")
             return
