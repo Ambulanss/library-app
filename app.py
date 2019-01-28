@@ -52,7 +52,7 @@ class App(Ui_Form):
     }
 
     colNamesDict = {
-        "Numer egzemplarza": "\"Numer egzemplarza\""
+        "Numer egzemplarza": "`Numer egzemplarza`"
     }
 
     modelTab = QtSql.QSqlTableModel()
