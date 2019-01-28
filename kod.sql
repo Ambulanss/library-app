@@ -192,7 +192,6 @@ CREATE TABLE IF NOT EXISTS Wypożyczenie (
 
 
 --DODANIE UZYTKOWNIKA
-DELIMITER $$
 CREATE PROCEDURE add_user (IN pesel VARCHAR(11), 
     IN imie VARCHAR(50),
     IN nazwisko VARCHAR(50),
@@ -218,10 +217,9 @@ BEGIN
         adres_kod_pocztowy)
     VALUES (pesel, imie, nazwisko, data,
     miasto, powiat, wojewodztwo, nr, ul, kod);
-END$$
-DELIMITER ;
+END;
 
-DELIMITER $$
+
 --CZY EGZEMPLARZ JEST WYPOZYCZONY CZY ZAREZERWOWANY
 CREATE FUNCTION czy_wypozyczony(id INT) RETURNS VARCHAR(50)
 BEGIN
@@ -244,7 +242,7 @@ BEGIN
             egzemplarz_id_egzemplarza = id;
     SET flag = IF(czy_zarezerwowane > 0, "ZAREZERWOWANY", NULL);
     RETURN flag;
-END$$
+END;
 
 --WYPOZYCZENIE
 CREATE PROCEDURE borrow_book (IN pesel VARCHAR(11),
@@ -257,9 +255,8 @@ BEGIN
     END IF;
 	INSERT INTO Wypożyczenie
 	VALUES (CURDATE(), DATE_ADD(CURDATE(), INTERVAL czas DAY), pesel, NULL, egzemp);
-END$$
+END;
 
-DELIMITER ;
 
 -----------------------------------------------
 --Autorzy i ich dzieła
@@ -314,11 +311,11 @@ AS
     u.imie AS "Imię", 
     u.nazwisko AS "Nazwisko",
     d.tytul AS "Tytuł",
-    CURDATE() - w.termin_oddania AS "Opóźnienie",
-    (CURDATE() - w.termin_oddania)*0.05 AS "Kara w złotówkach"
+    datediff(CURDATE(),w.termin_oddania) AS "Opóźnienie",
+    datediff(CURDATE(), w.termin_oddania)*0.05 AS "Kara w złotówkach"
 	FROM Użytkownik u, Wypożyczenie w, Egzemplarz e, Dzieło d
-	WHERE CURDATE() > w.termin_oddania 
-    and w.rzeczywista_data_oddania = NULL 
+	WHERE w.termin_oddania < CURDATE()
+    and w.rzeczywista_data_oddania IS NULL 
     and u.pesel = w.uzytkownik_pesel
     and d.id_dziela = e.dzielo_id_dziela
     and w.egzemplarz_id_egzemplarza = e.id_egzemplarza;
