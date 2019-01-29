@@ -173,16 +173,6 @@
                </property>
               </widget>
              </item>
-             <item row="6" column="1">
-              <widget class="QLineEdit" name="lineEdit_1_7">
-               <property name="maxLength">
-                <number>50</number>
-               </property>
-               <property name="placeholderText">
-                <string notr="true">Województwo</string>
-               </property>
-              </widget>
-             </item>
              <item row="7" column="0">
               <widget class="QLabel" name="label_15">
                <property name="text">
@@ -250,6 +240,90 @@
                <property name="placeholderText">
                 <string>Numer filii</string>
                </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
+              <widget class="QComboBox" name="lineEdit_1_7">
+               <item>
+                <property name="text">
+                 <string>Dolnośląskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Kujawsko-pomorskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Lubelskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Lubuskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Łódzkie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Małopolskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Mazowieckie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Opolskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Podkarpackie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Podlaskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Pomorskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Śląskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Świętokrzyskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Warmińsko-mazurskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Wielkopolskie</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Zachodniopomorskie</string>
+                </property>
+               </item>
               </widget>
              </item>
             </layout>
@@ -384,7 +458,7 @@
          <item row="0" column="0">
           <widget class="QTabWidget" name="tabWidget_2">
            <property name="currentIndex">
-            <number>2</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="tab_5">
             <attribute name="title">
@@ -1071,7 +1145,6 @@
   <tabstop>lineEdit_1_4</tabstop>
   <tabstop>lineEdit_1_5</tabstop>
   <tabstop>lineEdit_1_6</tabstop>
-  <tabstop>lineEdit_1_7</tabstop>
   <tabstop>lineEdit_1_8</tabstop>
   <tabstop>lineEdit_1_9</tabstop>
   <tabstop>lineEdit_1_10</tabstop>

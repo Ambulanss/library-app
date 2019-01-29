@@ -2,13 +2,16 @@
 import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QRegExpValidator
 from PyQt5 import QtSql
 from PyQt5.QtWidgets import QMessageBox
 import atexit
 from UI.main import Ui_Form
 
 
-class TextTransformer():
+class TextTransformer:
+
     def __init__(self):
         pass
 
@@ -29,6 +32,18 @@ class TextTransformer():
             else:
                 result.append(char + i + char)
         return result
+
+class MyRegexs:
+
+    varchar64 = QRegExpValidator(QRegExp(r"^[a-zA-Z0-9_ ]*$"))
+    decimal72 = QRegExpValidator(QRegExp(r"^[1-9][0-9]{1,4}\.[0-9]{2}$"))
+    int10unsigned = QRegExpValidator(QRegExp(r"[0-9]{10}"))
+    decimal82 = QRegExpValidator(QRegExp(r"^[1-9][0-9]{1,5}\.[0-9]{2}$"))
+    year4 = QRegExpValidator(QRegExp(r"^[1-9][0-9]{3}"))
+    search_bar = QRegExpValidator(QRegExp(r"^[a-zA-Z0-9_\- ]*$"))
+
+    def __init__(self):
+        pass
 
 
 class App(Ui_Form):
@@ -56,6 +71,10 @@ class App(Ui_Form):
     }
 
     modelTab = QtSql.QSqlTableModel()
+    registerTab = QtSql.QSqlTableModel()
+    borrowTab = QtSql.QSqlTableModel()
+    addingTab = QtSql.QSqlTableModel()
+    adminTab = QtSql.QSqlTableModel()
 
     def __init__(self, Form):
         self.getDB()
@@ -84,21 +103,34 @@ class App(Ui_Form):
         self.borrowSearchLabels, self.borrowSearchEdits = [], []
         self.registerSearchLabels, self.registerSearchEdits = [], []
         self.searchButton.released.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
-                                                                    self.adminSearchEdits, self.tableView_2))
+                                                                    self.adminSearchEdits, self.tableView_2, self.adminTab))
         self.addingSearchButton.released.connect(lambda: self.searchTable(self.comboBox_7, self.addSearchLabels,
-                                                                    self.addSearchEdits, self.tableView_3))
+                                                                    self.addSearchEdits, self.tableView_3, self.addingTab))
         self.borrowSearchButton.released.connect(lambda: self.searchTable(self.comboBox_8, self.borrowSearchLabels,
-                                                                    self.borrowSearchEdits, self.tableView_4))
+                                                                    self.borrowSearchEdits, self.tableView_4, self.borrowTab))
         self.registerSearchButton.released.connect(lambda: self.searchTable(self.comboBox_9, self.registerSearchLabels,
-                                                                    self.registerSearchEdits, self.tableView_5))
+                                                                    self.registerSearchEdits, self.tableView_5, self.registerTab))
+        # MODELS AND TABLES
         self.modelTab = QtSql.QSqlTableModel(db=self.conn)
+        self.registerTab = QtSql.QSqlTableModel(db=self.conn)
+        self.addingTab = QtSql.QSqlTableModel(db=self.conn)
+        self.borrowTab = QtSql.QSqlTableModel(db=self.conn)
+        self.adminTab = QtSql.QSqlTableModel(db=self.conn)
         self.modelTab.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)
-        self.modelTab.dataChanged.connect(self.editHandle)
+        self.modelTab.dataChanged.connect(lambda: self.editHandle(self.modelTab))
         self.tableView.setModel(self.modelTab)
         self.tableView.setSortingEnabled(True)
 
-        self.comboBox_3.currentTextChanged.connect(lambda: self.showing(self.comboBox_3, self.horizontalLayout,
-                                                                        self.adminSearchLabels, self.adminSearchEdits))
+        self.tableView_5.setModel(self.registerTab)
+        self.tableView_5.setSortingEnabled(True)
+
+        self.tableView_2.setModel(self.adminTab)
+        self.tableView_2.setSortingEnabled(True)
+        self.tableView_3.setModel(self.addingTab)
+        self.tableView_3.setSortingEnabled(True)
+        self.tableView_4.setModel(self.adminTab)
+        self.tableView_4.setSortingEnabled(True)
+
         self.comboBox_7.currentTextChanged.connect(lambda: self.showing(self.comboBox_7, self.addSearchLabelsLayout,
                                                                         self.addSearchLabels, self.addSearchEdits))
         self.comboBox_8.currentTextChanged.connect(lambda: self.showing(self.comboBox_8, self.borrowSearchLabelsLayout,
@@ -121,26 +153,26 @@ class App(Ui_Form):
                                  self.registerSearchEdits))
         # show tables correctly when tab is changed
         self.tabWidget.currentChanged.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
-                                                                    self.adminSearchEdits, self.tableView_2))
+                                                                    self.adminSearchEdits, self.tableView_2, self.adminTab))
         self.tabWidget.currentChanged.connect(lambda: self.searchTable(self.comboBox_7, self.addSearchLabels,
-                                                                          self.addSearchEdits, self.tableView_3))
+                                                                          self.addSearchEdits, self.tableView_3, self.addingTab))
         self.tabWidget.currentChanged.connect(lambda: self.searchTable(self.comboBox_8, self.borrowSearchLabels,
-                                                                          self.borrowSearchEdits, self.tableView_4))
+                                                                          self.borrowSearchEdits, self.tableView_4, self.borrowTab))
         self.tabWidget.currentChanged.connect(lambda: self.searchTable(self.comboBox_9, self.registerSearchLabels,
-                                                                            self.registerSearchEdits, self.tableView_5))
+                                                                            self.registerSearchEdits, self.tableView_5, self.registerTab))
         #show tables correctly when user changes table
         self.comboBox_3.currentTextChanged.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
-                                                                    self.adminSearchEdits, self.tableView_2))
+                                                                    self.adminSearchEdits, self.tableView_2, self.adminTab))
         self.comboBox_7.currentTextChanged.connect(lambda: self.searchTable(self.comboBox_7, self.addSearchLabels,
-                                                                          self.addSearchEdits, self.tableView_3))
+                                                                          self.addSearchEdits, self.tableView_3, self.addingTab))
         self.comboBox_8.currentTextChanged.connect(lambda: self.searchTable(self.comboBox_8, self.borrowSearchLabels,
-                                                                          self.borrowSearchEdits, self.tableView_4))
+                                                                          self.borrowSearchEdits, self.tableView_4, self.borrowTab))
         self.comboBox_9.currentTextChanged.connect(lambda: self.searchTable(self.comboBox_9, self.registerSearchLabels,
-                                                                            self.registerSearchEdits, self.tableView_5))
+                                                                            self.registerSearchEdits, self.tableView_5, self.registerTab))
         self.returnButton.released.connect(self.__return)
         self.reserveButton.released.connect(self.reservation)
         self.addButton_2.released.connect(self.addBook)
-        self.searchTable(self.comboBox_9, self.registerSearchLabels, self.registerSearchEdits, self.tableView_5)
+        self.searchTable(self.comboBox_9, self.registerSearchLabels, self.registerSearchEdits, self.tableView_5, self.registerTab)
 
     def getDB(self):
         self.conn = QtSql.QSqlDatabase.addDatabase('QMYSQL')
@@ -158,13 +190,13 @@ class App(Ui_Form):
         self.modelTab.setTable(tableName)
         self.modelTab.select()
 
-    def editHandle(self):
-        self.modelTab.submitAll()
-        self.modelTab.select()
-        if self.modelTab.lastError().isValid():
-            self.showError(self.modelTab.lastError())
+    def editHandle(self, model):
+        model.submitAll()
+        model.select()
+        if model.lastError().isValid():
+            self.showError(model.lastError())
 
-    def searchTable(self, comboBox, searchLabels, searchEdits, tableView):
+    def searchTable(self, comboBox, searchLabels, searchEdits, tableView, projectModel):
         tablename = comboBox.currentText()
         argnames = []
         args = []
@@ -173,7 +205,7 @@ class App(Ui_Form):
             if len(searchEdits[i].text()) > 0:
                 args.append(searchEdits[i].text())
                 argnames.append(self.colNamesDict.get(searchLabels[i].text(), searchLabels[i].text()))
-        query = QtSql.QSqlQuery(self.conn)
+        filter = None
         if args:
             args = self.textTr.wrapStringsWith(args, "'")
             parsed_args = [argnames[i] + "=" + args[i] for i in range(len(args))]
@@ -181,14 +213,16 @@ class App(Ui_Form):
             print(parsed_args)
 
             sql = "SELECT * FROM " + tablename + " WHERE " + parsed_args
+            filter = parsed_args
         else:
             sql = "SELECT * FROM " + tablename
-        projectModel = QtSql.QSqlQueryModel()
-        projectModel.setQuery(sql, self.conn)
-        print(sql)
-        query.exec_(sql)
-        tableView.setModel(projectModel)
-        tableView.show()
+
+        projectModel.setTable(tablename)
+        if filter != None:
+            projectModel.setFilter(filter)
+        projectModel.select()
+
+        #tableView.show()
 
     def addBook(self):
         title = self.lineEdit_2.text()
@@ -449,7 +483,6 @@ class App(Ui_Form):
         if helpQuery.lastError().isValid():
             QMessageBox.critical(None, "Błąd!", helpQuery.lastError().text())
 
-
     def __addUser(self):
         query = QtSql.QSqlQuery(self.conn)
 
@@ -457,7 +490,8 @@ class App(Ui_Form):
                 self.lineEdit_1_4, self.lineEdit_1_5, self.lineEdit_1_6,
                 self.lineEdit_1_7, self.lineEdit_1_8, self.lineEdit_1_9,
                 self.lineEdit_1_10, self.lineEdit_1_11]
-
+        # TODO make regex for each field
+        regexes = []
         text_ = QtWidgets.QLineEdit.text
         arg_values = [text_(i) for i in args[:-1]]
         filia = "'" + args[-1].text() + "'"
@@ -483,10 +517,6 @@ class App(Ui_Form):
             self.showError(query.lastError())
         else:
             QMessageBox.information(None, "Sukces!", "Pomyślnie dodano użytkownika!")
-
-
-
-
 
     def closeConnection(self):
         self.conn.close()
