@@ -108,8 +108,35 @@ class App(Ui_Form):
                                                                         self.registerSearchEdits))
         self.tabWidget.currentChanged.connect(lambda: self.putDataIntoTableView(self.comboBox.currentText()))
         self.tabWidget.currentChanged.connect(lambda: self.showTableParameters(self.comboBox_2.currentText()))
-
-
+        self.tabWidget.currentChanged.connect(lambda: self.showing(self.comboBox_3, self.horizontalLayout,
+                                                                self.adminSearchLabels, self.adminSearchEdits))
+        self.tabWidget.currentChanged.connect(lambda: self.showing(self.comboBox_7, self.addSearchLabelsLayout,
+                                                                        self.addSearchLabels, self.addSearchEdits))
+        self.tabWidget.currentChanged.connect(lambda: self.showing(self.comboBox_8, self.borrowSearchLabelsLayout,
+                                                                        self.borrowSearchLabels,
+                                                                        self.borrowSearchEdits))
+        self.tabWidget.currentChanged.connect(
+            lambda: self.showing(self.comboBox_9, self.registerSearchLabelsLayout,
+                                 self.registerSearchLabels,
+                                 self.registerSearchEdits))
+        # show tables correctly when tab is changed
+        self.tabWidget.currentChanged.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
+                                                                    self.adminSearchEdits, self.tableView_2))
+        self.tabWidget.currentChanged.connect(lambda: self.searchTable(self.comboBox_7, self.addSearchLabels,
+                                                                          self.addSearchEdits, self.tableView_3))
+        self.tabWidget.currentChanged.connect(lambda: self.searchTable(self.comboBox_8, self.borrowSearchLabels,
+                                                                          self.borrowSearchEdits, self.tableView_4))
+        self.tabWidget.currentChanged.connect(lambda: self.searchTable(self.comboBox_9, self.registerSearchLabels,
+                                                                            self.registerSearchEdits, self.tableView_5))
+        #show tables correctly when user changes table
+        self.comboBox_3.currentTextChanged.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
+                                                                    self.adminSearchEdits, self.tableView_2))
+        self.comboBox_7.currentTextChanged.connect(lambda: self.searchTable(self.comboBox_7, self.addSearchLabels,
+                                                                          self.addSearchEdits, self.tableView_3))
+        self.comboBox_8.currentTextChanged.connect(lambda: self.searchTable(self.comboBox_8, self.borrowSearchLabels,
+                                                                          self.borrowSearchEdits, self.tableView_4))
+        self.comboBox_9.currentTextChanged.connect(lambda: self.searchTable(self.comboBox_9, self.registerSearchLabels,
+                                                                            self.registerSearchEdits, self.tableView_5))
         self.borrowButton.released.connect(self.__borrow)
         self.returnButton.released.connect(self.__return)
         self.reserveButton.released.connect(self.reservation)
@@ -265,6 +292,8 @@ class App(Ui_Form):
         query.exec_(sql)
         if query.lastError().isValid():
             QMessageBox.critical(None, "Błąd!", query.lastError().text())
+        else:
+            QMessageBox.information(None, "Sukces!", "Pomyślnie dodano rezerwację!")
 
 
     def showing(self, comboBox, horizontalLayout, searchLabels, searchEdits):
