@@ -37,7 +37,7 @@ class App(Ui_Form):
         -1: "Coś się stało",
         -5:   "Nie podałeś żadnych argumentów",
         1062: "Niektóre z wprowadzonych wartości się powtarzają!",
-        1064:   "",
+        #1064:   "",
         1364: "Nie wypełniłeś pól obowiązkowych",
         1366: "Niewłaściwy typ argumentu",
         1452: "Jedno z pól obowiązkowych nie ma odpowiednika w tabeli docelowej.\n Np. nie ma użytkownika o podanym peselu.",
@@ -137,10 +137,10 @@ class App(Ui_Form):
                                                                           self.borrowSearchEdits, self.tableView_4))
         self.comboBox_9.currentTextChanged.connect(lambda: self.searchTable(self.comboBox_9, self.registerSearchLabels,
                                                                             self.registerSearchEdits, self.tableView_5))
-        self.borrowButton.released.connect(self.__borrow)
         self.returnButton.released.connect(self.__return)
         self.reserveButton.released.connect(self.reservation)
         self.addButton_2.released.connect(self.addBook)
+        self.searchTable(self.comboBox_9, self.registerSearchLabels, self.registerSearchEdits, self.tableView_5)
 
     def getDB(self):
         self.conn = QtSql.QSqlDatabase.addDatabase('QMYSQL')
@@ -269,7 +269,7 @@ class App(Ui_Form):
 
         pesel = self.lineEdit_9.text()
         number = self.lineEdit_10.text()
-        days = self.lineEdit_11.text()
+        days = self.lineEdit_11.value()
         if pesel == "":
             QMessageBox.information(None, "Błąd!", "Uzupełnij pesel!")
             return
@@ -282,12 +282,9 @@ class App(Ui_Form):
         if days == "":
             QMessageBox.information(None, "Błąd!", "Uzupełnij liczbę dni do upłynięcia rezerwacji!")
             return
-        if not days.isdigit():
-            QMessageBox.information(None, "Błąd!", "Liczba dni do upłynięcia rezerwacji to liczba!")
-            return
 
         query = QtSql.QSqlQuery(self.conn)
-        sql = "INSERT INTO Rezerwacja VALUES( CURDATE(), ADDDATE(CURDATE(), " + days + "), '" + pesel + "', '" + number + "', 'AKTYWNA')"
+        sql = "INSERT INTO Rezerwacja VALUES( CURDATE(), ADDDATE(CURDATE(), " + str(days) + "), '" + pesel + "', '" + number + "', 'AKTYWNA')"
         print(sql)
         query.exec_(sql)
         if query.lastError().isValid():
@@ -408,7 +405,7 @@ class App(Ui_Form):
         query = QtSql.QSqlQuery()
         pesel = self.borrowEdit.text()
         number = self.borrowEdit_1.text()
-        time = self.borrowEdit_2.text()
+        time = self.borrowEdit_2.value()
         if pesel == "":
             QMessageBox.critical(None, "Błąd!", "Wypełnij pole pesel")
             return
@@ -418,7 +415,7 @@ class App(Ui_Form):
         if time == "":
             QMessageBox.critical(None, "Błąd!", "Wypełnij pole Dni na oddanie")
             return
-        sql = "CALL borrow_book('" + pesel + "', " + number + ", " + time + ")"
+        sql = "CALL borrow_book('" + pesel + "', " + number + ", " + str(time) + ")"
         query.exec_(sql)
 
         if query.lastError().isValid():
@@ -499,7 +496,7 @@ class App(Ui_Form):
 
     def showError(self, error):
         QMessageBox.critical(self.tabWidget, "Błąd nr " + str(error.number()), self.errorDict.get(error.number(),\
-                             "Niezdefiniowany błąd"), QMessageBox.Ok)
+                             error.text()), QMessageBox.Ok)
         print(error.text())
 
 
