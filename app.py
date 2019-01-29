@@ -24,6 +24,12 @@ class TextTransformer:
         output += list[-1]
         return output
 
+    def listToAndStr(self, list):
+        output = ""
+        for i in list[:-1]:
+            output += i + " and "
+        output += list[-1]
+        return output
     def wrapStringsWith(self, strList, char):
         result = []
         for i in strList:
@@ -173,6 +179,14 @@ class App(Ui_Form):
         self.reserveButton.released.connect(self.reservation)
         self.addButton_2.released.connect(self.addBook)
         self.searchTable(self.comboBox_9, self.registerSearchLabels, self.registerSearchEdits, self.tableView_5, self.registerTab)
+        self.addUserButton.released.connect(lambda: self.searchTable(self.comboBox_9, self.registerSearchLabels,
+                                                                    self.registerSearchEdits, self.tableView_5, self.registerTab))
+        self.addButton.released.connect(lambda: self.putDataIntoTableView(self.comboBox.currentText()))
+        self.addButton.released.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
+                                                                    self.adminSearchEdits, self.tableView_2, self.adminTab))
+        self.deleteButton.released.connect(lambda: self.putDataIntoTableView(self.comboBox.currentText()))
+        self.deleteButton.released.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
+                                                                    self.adminSearchEdits, self.tableView_2, self.adminTab))
 
     def getDB(self):
         self.conn = QtSql.QSqlDatabase.addDatabase('QMYSQL')
@@ -424,9 +438,9 @@ class App(Ui_Form):
             query = QtSql.QSqlQuery(self.conn)
             conditions = []
             for i in range(len(fieldNames)):
-                conditions.append(fieldNames[i]+"="+str(args[i]))
+                    conditions.append(fieldNames[i]+"="+str(args[i]))
             print(conditions)
-            sql = "DELETE FROM " + tableName + " WHERE " + self.textTr.listToCommaStr(conditions, False)
+            sql = "DELETE FROM " + tableName + " WHERE " + self.textTr.listToAndStr(conditions)
             print(sql)
             query.exec_(sql)
             if query.lastError().isValid():
