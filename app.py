@@ -48,9 +48,6 @@ class MyRegexs:
     year4 = QRegExpValidator(QRegExp(r"^[1-9][0-9]{3}"))
     search_bar = QRegExpValidator(QRegExp(r"^[a-zA-Z0-9_\- ]*$"))
 
-    def __init__(self):
-        pass
-
 
 class App(Ui_Form):
 
@@ -123,7 +120,7 @@ class App(Ui_Form):
         self.borrowTab = QtSql.QSqlTableModel(db=self.conn)
         self.adminTab = QtSql.QSqlTableModel(db=self.conn)
         self.modelTab.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)
-        self.modelTab.dataChanged.connect(lambda: self.editHandle(self.modelTab))
+        self.modelTab.dataChanged.connect(self.editHandle)
         self.tableView.setModel(self.modelTab)
         self.tableView.setSortingEnabled(True)
 
@@ -204,11 +201,18 @@ class App(Ui_Form):
         self.modelTab.setTable(tableName)
         self.modelTab.select()
 
-    def editHandle(self, model):
-        model.submitAll()
-        model.select()
-        if model.lastError().isValid():
-            self.showError(model.lastError())
+    def editHandle(self, tLeft, bRight):
+        item = self.modelTab.itemData(tLeft)
+        text = item.get(0)
+        if text == "":
+            QMessageBox.critical(None, "Błąd!", "Nie wolno wprowadzać pustych pól. Zmiana zostanie cofnięta!")
+            self.modelTab.select()
+            return
+        self.modelTab.submitAll()
+        self.modelTab.select()
+        if self.modelTab.lastError().isValid():
+            QMessageBox.critical(None, "Błąd!", self.modelTab.lastError().text())
+            #self.showError(model.lastError())
 
     def searchTable(self, comboBox, searchLabels, searchEdits, tableView, projectModel):
         tablename = comboBox.currentText()
@@ -301,8 +305,6 @@ class App(Ui_Form):
 
         if checkQuery.lastError().isValid():
             print(checkQuery.lastError().text())
-
-
 
     def addAuthor(self, name, surname):
         query = QtSql.QSqlQuery(self.conn)
