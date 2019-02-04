@@ -503,24 +503,36 @@ class App(Ui_Form):
         query = QtSql.QSqlQuery(self.conn)
 
         args = [self.lineEdit_1_1, self.lineEdit_1_2, self.lineEdit_1_3,
-                self.lineEdit_1_4, self.lineEdit_1_5, self.lineEdit_1_6,
+                self.dateEdit, self.lineEdit_1_5, self.lineEdit_1_6,
                 self.lineEdit_1_7, self.lineEdit_1_8, self.lineEdit_1_9,
                 self.lineEdit_1_10, self.lineEdit_1_11]
         # TODO make regex for each field
         regexes = []
         text_ = QtWidgets.QLineEdit.text
-        arg_values = [text_(i) for i in args[:-1]]
+        arg_values = []
+        for i in args:
+            try:
+                arg_values.append(text_(i))
+            except:
+                try:
+                    arg_values.append(i.currentText())
+                except:
+                    arg_values.append(str(i.date().toPyDate()))
+
         filia = "'" + args[-1].text() + "'"
         for i in range(len(arg_values)):
             if len(arg_values[i]) == 0:
                 QMessageBox.information(None, "Błąd!", "Pole nr " + str(i + 1) + " jest puste!")
                 return
         w_args = self.textTr.wrapStringsWith(arg_values, "'")
-        sql = "SELECT * FROM Użytkownik WHERE pesel like " + w_args[0]
+        sql = "SELECT * FROM Użytkownik WHERE pesel like '" + w_args[0] + "'"
         query.exec_(sql)
         if not query.next():
-            addingtext = self.textTr.listToCommaStr(w_args, False)
+            addingtext = self.textTr.listToCommaStr(w_args[:-1], False)
+            print(addingtext)
             query.exec_("CALL add_user(" + addingtext + ")")
+            if query.lastError().isValid():
+                self.showError(query.lastError())
             query.exec_("INSERT INTO Przynależność_do_filii VALUES(" + filia + ", " + w_args[0] + ")")
         else:
             query.exec_("SELECT * FROM Przynależność_do_filii WHERE filia_numer = " + filia + " and uzytkownik_pesel = " + w_args[0])
