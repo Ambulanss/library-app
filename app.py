@@ -30,6 +30,7 @@ class TextTransformer:
             output += i + " and "
         output += list[-1]
         return output
+
     def wrapStringsWith(self, strList, char):
         result = []
         for i in strList:
@@ -39,6 +40,11 @@ class TextTransformer:
                 result.append(char + i + char)
         return result
 
+    def wrapForSearchWith(self, strings, wrapper):
+        result = []
+        for i in strings:
+            result.append(wrapper + i + wrapper)
+        return result
 class MyRegexs:
 
     varchar64 = QRegExpValidator(QRegExp(r"^[a-zA-Z0-9_ ]*$"))
@@ -225,8 +231,11 @@ class App(Ui_Form):
                 argnames.append(self.colNamesDict.get(searchLabels[i].text(), searchLabels[i].text()))
         filter = None
         if args:
-            args = self.textTr.wrapStringsWith(args, "'")
-            parsed_args = [argnames[i] + "=" + args[i] for i in range(len(args))]
+            args = self.textTr.wrapForSearchWith(args, "%")
+            print(args)
+            args = self.textTr.wrapForSearchWith(args, "'")
+            print(args)
+            parsed_args = [argnames[i] + " like " + args[i] for i in range(len(args))]
             parsed_args = self.textTr.listToCommaStr(parsed_args, False)
             print(parsed_args)
 
