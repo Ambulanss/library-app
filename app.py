@@ -76,7 +76,12 @@ class App(Ui_Form):
     }
 
     colNamesDict = {
-        "Numer egzemplarza": "`Numer egzemplarza`"
+        "Numer egzemplarza": "`Numer egzemplarza`",
+        "Imię autora": "`Imię autora`",
+        "Nazwisko autora": "`Nazwisko autora`",
+        "Data wypozyczenia": "`Data wypozyczenia`",
+        "Termin oddania": "`Termin oddania`",
+        "Kara w złotówkach": "`Kara w złotówkach`"
     }
 
     modelTab = QtSql.QSqlTableModel()
@@ -140,6 +145,9 @@ class App(Ui_Form):
         self.tableView_4.setModel(self.adminTab)
         self.tableView_4.setSortingEnabled(True)
 
+        self.comboBox_3.currentTextChanged.connect(lambda: self.showing(self.comboBox_3, self.horizontalLayout,
+                                                                        self.adminSearchLabels, self.adminSearchEdits))
+
         self.comboBox_7.currentTextChanged.connect(lambda: self.showing(self.comboBox_7, self.addSearchLabelsLayout,
                                                                         self.addSearchLabels, self.addSearchEdits))
         self.comboBox_8.currentTextChanged.connect(lambda: self.showing(self.comboBox_8, self.borrowSearchLabelsLayout,
@@ -170,6 +178,7 @@ class App(Ui_Form):
         self.tabWidget.currentChanged.connect(lambda: self.searchTable(self.comboBox_9, self.registerSearchLabels,
                                                                             self.registerSearchEdits, self.tableView_5, self.registerTab))
         #show tables correctly when user changes table
+
         self.comboBox_3.currentTextChanged.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
                                                                     self.adminSearchEdits, self.tableView_2, self.adminTab))
         self.comboBox_7.currentTextChanged.connect(lambda: self.searchTable(self.comboBox_7, self.addSearchLabels,
@@ -184,6 +193,14 @@ class App(Ui_Form):
         self.searchTable(self.comboBox_9, self.registerSearchLabels, self.registerSearchEdits, self.tableView_5, self.registerTab)
         self.addUserButton.released.connect(lambda: self.searchTable(self.comboBox_9, self.registerSearchLabels,
                                                                     self.registerSearchEdits, self.tableView_5, self.registerTab))
+        self.reserveButton.released.connect(lambda: self.searchTable(self.comboBox_8, self.borrowSearchLabels, self.borrowSearchEdits,
+                                                                     self.tableView_4, self.borrowTab))
+        self.returnButton.released.connect(lambda: self.searchTable(self.comboBox_8, self.borrowSearchLabels, self.borrowSearchEdits,
+                                                                     self.tableView_4, self.borrowTab))
+        self.borrowButton.released.connect(lambda: self.searchTable(self.comboBox_8, self.borrowSearchLabels, self.borrowSearchEdits,
+                                                                     self.tableView_4, self.borrowTab))
+        self.addButton_2.released.connect(lambda: self.searchTable(self.comboBox_7, self.addSearchLabels, self.addSearchEdits,
+                                                                     self.tableView_3, self.addingTab))
         self.addButton.released.connect(lambda: self.putDataIntoTableView(self.comboBox.currentText()))
         self.addButton.released.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
                                                                     self.adminSearchEdits, self.tableView_2, self.adminTab))
@@ -236,7 +253,7 @@ class App(Ui_Form):
             args = self.textTr.wrapForSearchWith(args, "'")
             print(args)
             parsed_args = [argnames[i] + " like " + args[i] for i in range(len(args))]
-            parsed_args = self.textTr.listToCommaStr(parsed_args, False)
+            parsed_args = self.textTr.listToAndStr(parsed_args)
             print(parsed_args)
 
             sql = "SELECT * FROM " + tablename + " WHERE " + parsed_args
