@@ -64,7 +64,7 @@ class App(Ui_Form):
         #1064:   "",
         1364: "Nie wypełniłeś pól obowiązkowych",
         1366: "Niewłaściwy typ argumentu",
-        1452: "Jedno z pól obowiązkowych nie ma odpowiednika w tabeli docelowej.\n Np. nie ma użytkownika o podanym peselu.",
+        1452: "Jedno z pól obowiązkowych nie ma odpowiednika w tabeli docelowej.",
         4025: "Niespełnione ograniczenie"
     }
 
