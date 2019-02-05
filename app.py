@@ -168,6 +168,7 @@ class App(Ui_Form):
             lambda: self.showing(self.comboBox_9, self.registerSearchLabelsLayout,
                                  self.registerSearchLabels,
                                  self.registerSearchEdits))
+        self.tabWidget.currentChanged.connect(self.getFilieAndFill)
         # show tables correctly when tab is changed
         self.tabWidget.currentChanged.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
                                                                     self.adminSearchEdits, self.tableView_2, self.adminTab))
@@ -210,6 +211,8 @@ class App(Ui_Form):
         self.showing(self.comboBox_9, self.registerSearchLabelsLayout,
                      self.registerSearchLabels,
                      self.registerSearchEdits)
+
+        self.getFilieAndFill()
 
     def getDB(self):
         self.conn = QtSql.QSqlDatabase.addDatabase('QMYSQL')
@@ -423,17 +426,6 @@ class App(Ui_Form):
             self.addDelLineEdits[-1].setToolTip(types[i])
             self.formLayout.addRow(self.addDelLabels[i], self.addDelLineEdits[i])
 
-    def checkBook(self):
-        query = QtSql.QSqlQuery(self.conn)
-        sql = "SELECT czy_wypozyczony(" + self.lineEdit_2_1.text().strip() + ")"
-        try:
-            query.exec_(sql)
-        except:
-            self.showError(query.lastError())
-        QMessageBox.information(None, "Informacja", "Egzemplarz " +
-                                ("wypożyczony" if query.value(1) else "nie jest wypożyczony lub nie istnieje"))
-
-
     def __getFieldsFromUI(self):
         fieldNames = []
         args = []
@@ -535,8 +527,6 @@ class App(Ui_Form):
                 self.dateEdit, self.lineEdit_1_5, self.lineEdit_1_6,
                 self.lineEdit_1_7, self.lineEdit_1_8, self.lineEdit_1_9,
                 self.lineEdit_1_10, self.lineEdit_1_11]
-        # TODO make regex for each field
-        regexes = []
         text_ = QtWidgets.QLineEdit.text
         arg_values = []
         for i in args:
@@ -548,13 +538,13 @@ class App(Ui_Form):
                 except:
                     arg_values.append(str(i.date().toPyDate()))
 
-        filia = "'" + args[-1].text() + "'"
+        filia = "'" + args[-1].currentText() + "'"
         for i in range(len(arg_values)):
             if len(arg_values[i]) == 0:
                 QMessageBox.information(None, "Błąd!", "Pole nr " + str(i + 1) + " jest puste!")
                 return
         w_args = self.textTr.wrapStringsWith(arg_values, "'")
-        sql = "SELECT * FROM Użytkownik WHERE pesel like '" + w_args[0] + "'"
+        sql = "SELECT * FROM Użytkownik WHERE pesel like '" + w_args[0] + "' and imie like " + w_args[1] + " and nazwisko like " + w_args[2]
         query.exec_(sql)
         if not query.next():
             addingtext = self.textTr.listToCommaStr(w_args[:-1], False)
@@ -562,6 +552,7 @@ class App(Ui_Form):
             query.exec_("CALL add_user(" + addingtext + ")")
             if query.lastError().isValid():
                 self.showError(query.lastError())
+                return
             query.exec_("INSERT INTO Przynależność_do_filii VALUES(" + filia + ", " + w_args[0] + ")")
         else:
             query.exec_("SELECT * FROM Przynależność_do_filii WHERE filia_numer = " + filia + " and uzytkownik_pesel = " + w_args[0])
@@ -574,6 +565,16 @@ class App(Ui_Form):
             self.showError(query.lastError())
         else:
             QMessageBox.information(None, "Sukces!", "Pomyślnie dodano użytkownika!")
+
+    def getFilieAndFill(self):
+        self.lineEdit_1_11.setInsertPolicy(QtWidgets.QComboBox.InsertAtBottom)
+        sql = "SELECT numer FROM Filia"
+        query = QtSql.QSqlQuery(db=self.conn)
+        query.exec_(sql)
+        self.lineEdit_1_11.clear()
+        index = query.record().indexOf('numer')
+        while query.next():
+            self.lineEdit_1_11.addItem(str(query.value(index)))
 
     def closeConnection(self):
         self.conn.close()
