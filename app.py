@@ -497,6 +497,20 @@ class App(Ui_Form):
         else:
             QMessageBox.information(None, "Błąd", "Nie ma egzemplarza o podanym numerze")
             return
+
+        checkIfReservationValidSql = "SELECT uzytkownik_pesel from Rezerwacja where egzemplarz_id_egzemplarza=" + number + " and status='AKTYWNA'"
+        query.exec_(checkIfReservationValidSql)
+        reservationValid = True
+        while query.next():
+            if query.value(0) != pesel:
+                reservationValid = False
+            if query.value(0) == pesel:
+                reservationValid = True
+                break
+        if reservationValid == False:
+            QMessageBox.critical(None, "Błąd", "Inny użytkownik zarezerwował ten egzemplarz.")
+            return
+
         checkIfUserIsValidSql = "SELECT * FROM Przynależność_do_filii where filia_numer=" + str(numer_filii) + " and uzytkownik_pesel='" + pesel + "'"
         query.exec_(checkIfUserIsValidSql)
         if query.lastError().isValid():
@@ -511,7 +525,11 @@ class App(Ui_Form):
         if query.lastError().isValid():
             self.showError(query.lastError())
             return
+        sql = "UPDATE Rezerwacja SET status='ZREALIZOWANA' where uzytkownik_pesel='" + pesel + "' and egzemplarz_id_egzemplarza=" + number + \
+              " and status='AKTYWNA'"
+        query.exec_(sql)
         QMessageBox.information(None, "Sukces!", "Dodano wypożyczenie!")
+
 
 
     def __return(self):
@@ -532,12 +550,15 @@ class App(Ui_Form):
             helpQuery.exec_("UPDATE Wypożyczenie SET rzeczywista_data_oddania = CURDATE() "
                             "WHERE rzeczywista_data_oddania IS NULL and egzemplarz_id_egzemplarza = " + number)
         else:
-            QMessageBox.information(None, "Brak danej", "W bazie nie ma wypożyczonego egzemplarza o tym numerze")
+            QMessageBox.information(None, "Błąd", "W bazie nie ma wypożyczonego egzemplarza o tym numerze")
             return
         if query.lastError().isValid():
             QMessageBox.critical(None, "Błąd!", query.lastError().text())
+            return
         if helpQuery.lastError().isValid():
             QMessageBox.critical(None, "Błąd!", helpQuery.lastError().text())
+            return
+        QMessageBox.information(None, "Sukces!", "Pomyślny zwrot książki!")
 
     def __addUser(self):
         query = QtSql.QSqlQuery(self.conn)
