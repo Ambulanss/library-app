@@ -207,6 +207,9 @@ class App(Ui_Form):
         self.deleteButton.released.connect(lambda: self.putDataIntoTableView(self.comboBox.currentText()))
         self.deleteButton.released.connect(lambda: self.searchTable(self.comboBox_3, self.adminSearchLabels,
                                                                     self.adminSearchEdits, self.tableView_2, self.adminTab))
+        self.showing(self.comboBox_9, self.registerSearchLabelsLayout,
+                     self.registerSearchLabels,
+                     self.registerSearchEdits)
 
     def getDB(self):
         self.conn = QtSql.QSqlDatabase.addDatabase('QMYSQL')
