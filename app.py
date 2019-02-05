@@ -142,7 +142,7 @@ class App(Ui_Form):
         self.tableView_2.setSortingEnabled(True)
         self.tableView_3.setModel(self.addingTab)
         self.tableView_3.setSortingEnabled(True)
-        self.tableView_4.setModel(self.adminTab)
+        self.tableView_4.setModel(self.borrowTab)
         self.tableView_4.setSortingEnabled(True)
 
         self.comboBox_3.currentTextChanged.connect(lambda: self.showing(self.comboBox_3, self.horizontalLayout,
