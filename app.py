@@ -45,14 +45,6 @@ class TextTransformer:
         for i in strings:
             result.append(wrapper + i + wrapper)
         return result
-class MyRegexs:
-
-    varchar64 = QRegExpValidator(QRegExp(r"^[a-zA-Z0-9_ ]*$"))
-    decimal72 = QRegExpValidator(QRegExp(r"^[1-9][0-9]{1,4}\.[0-9]{2}$"))
-    int10unsigned = QRegExpValidator(QRegExp(r"[0-9]{10}"))
-    decimal82 = QRegExpValidator(QRegExp(r"^[1-9][0-9]{1,5}\.[0-9]{2}$"))
-    year4 = QRegExpValidator(QRegExp(r"^[1-9][0-9]{3}"))
-    search_bar = QRegExpValidator(QRegExp(r"^[a-zA-Z0-9_\- ]*$"))
 
 
 class App(Ui_Form):
@@ -65,7 +57,8 @@ class App(Ui_Form):
         1364: "Nie wypełniłeś pól obowiązkowych",
         1366: "Niewłaściwy typ argumentu",
         1452: "Jedno z pól obowiązkowych nie ma odpowiednika w tabeli docelowej.",
-        4025: "Niespełnione ograniczenie"
+        4025: "Niespełnione ograniczenie",
+        1644: "Dany egzemplarz jest już wypożyczony!"
     }
 
     fieldTypeDict = {
@@ -415,24 +408,32 @@ class App(Ui_Form):
 
         for i in range(x):
             self.addDelLabels.append(QtWidgets.QLabel(names[i]))
-            self.addDelLineEdits.append(QtWidgets.QComboBox())
+
             options_query = QtSql.QSqlQuery(db=self.conn, query="SELECT DISTINCT " + names[i] + " FROM " + name)
-            self.addDelLineEdits[-1].setEditable(True)
-            if types[i] == "Ciąg znaków":
+
+            if types[i] == "Ciąg znaków" or types[i] == "Liczba rzeczywista" or types[i] == "Liczba naturalna":
+                self.addDelLineEdits.append(QtWidgets.QComboBox())
+                self.addDelLineEdits[-1].setToolTip(types[i])
+                self.addDelLineEdits[-1].setEditable(True)
                 while options_query.next():
                     self.addDelLineEdits[-1].addItem(str(options_query.value(0)))
             if types[i] == "Data w formacie YYYY-MM-DD":
-                self.addDelLineEdits[-1].setCurrentText("YYYY-MM-DD")
-            self.addDelLineEdits[-1].setToolTip(types[i])
+                self.addDelLineEdits.append(QtWidgets.QDateEdit())
+
+
             self.formLayout.addRow(self.addDelLabels[i], self.addDelLineEdits[i])
 
     def __getFieldsFromUI(self):
         fieldNames = []
         args = []
         for i in range(len(self.addDelLabels)):
-            if len(self.addDelLineEdits[i].currentText()) > 0:
+            try:
+                if len(self.addDelLineEdits[i].currentText()) > 0:
+                    fieldNames.append(self.addDelLabels[i].text())
+                    args.append(self.addDelLineEdits[i].currentText())
+            except:
                 fieldNames.append(self.addDelLabels[i].text())
-                args.append(self.addDelLineEdits[i].currentText())
+                args.append(str(self.addDelLineEdits[i].date().toPyDate()))
         return fieldNames, args
 
     def __insertData(self):
@@ -486,9 +487,27 @@ class App(Ui_Form):
         if time == "":
             QMessageBox.critical(None, "Błąd!", "Wypełnij pole Dni na oddanie")
             return
-        sql = "CALL borrow_book('" + pesel + "', " + number + ", " + str(time) + ")"
-        query.exec_(sql)
-
+        getBookPlaceSql = "SELECT dzial_filia_numer FROM Egzemplarz where id_egzemplarza=" + number
+        query.exec_(getBookPlaceSql)
+        if query.lastError().isValid():
+            self.showError(query.lastError())
+            return
+        if query.next():
+            numer_filii = query.value(0)
+        else:
+            QMessageBox.information(None, "Błąd", "Nie ma egzemplarza o podanym numerze")
+            return
+        checkIfUserIsValidSql = "SELECT * FROM Przynależność_do_filii where filia_numer=" + str(numer_filii) + " and uzytkownik_pesel='" + pesel + "'"
+        query.exec_(checkIfUserIsValidSql)
+        if query.lastError().isValid():
+            self.showError(query.lastError())
+            return
+        if query.next():
+            sql = "CALL borrow_book('" + pesel + "', " + number + ", " + str(time) + ")"
+            query.exec_(sql)
+        else:
+            QMessageBox.information(None, "Błąd", "Podany użytkownik nie należy do tej filii.")
+            return
         if query.lastError().isValid():
             self.showError(query.lastError())
             return
